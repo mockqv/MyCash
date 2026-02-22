@@ -1,0 +1,11 @@
+services:
+  api:
+    build:
+      context: ./MyCash.API
+      dockerfile: Dockerfile
+    container_name: mycash-container
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${DATABASE_URL}
