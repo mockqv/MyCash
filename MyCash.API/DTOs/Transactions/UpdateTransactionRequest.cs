@@ -1,7 +1,7 @@
 ﻿using MyCash.API.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace MyCash.API.DTOs;
+namespace MyCash.API.DTOs.Transactions;
 
     public class UpdateTransactionRequest
     {
