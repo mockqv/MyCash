@@ -1,14 +1,17 @@
-﻿using MyCash.API.Models;
+﻿using MyCash.API.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyCash.API.DTOs.Transactions;
 
-    public class UpdateTransactionRequest
-    {
+public class UpdateTransactionRequest
+{
     public string Description { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public DateTime Date { get; set; }
+
     [EnumDataType(typeof(TransactionType), ErrorMessage = "Invalid transaction type. Only 0 or 1 are allowed.")]
     public TransactionType Type { get; set; }
-}
 
+    [EnumDataType(typeof(TransactionCategory), ErrorMessage = "Invalid category.")]
+    public TransactionCategory Category { get; set; }
+}
