@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using MyCash.API.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace MyCash.API.Models;
 
@@ -15,10 +16,5 @@ public class Transaction
     public DateTime Date { get; set; }
 
     public TransactionType Type { get; set; }
-}
-
-public enum TransactionType
-{
-    Income,
-    Expense
+    public TransactionCategory Category { get; set; } = TransactionCategory.Outros;
 }
