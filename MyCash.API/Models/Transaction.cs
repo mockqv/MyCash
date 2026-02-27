@@ -6,7 +6,7 @@ public class Transaction
 {
     public Guid Id { get; set; }
     [Required]
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
 
     public string Description { get; set; } = string.Empty;
 

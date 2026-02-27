@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MyCash.API.Data;
 using MyCash.API.DTOs.Transactions;
 using MyCash.API.Models;
+using MyCash.API.Extensions;
 
 namespace MyCash.API.Controllers;
 
@@ -22,12 +23,15 @@ public class TransactionsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateTransaction([FromBody] CreateTransactionRequest request)
     {
+        var userId = User.GetUserId();
+
         var transaction = new Transaction
         {
             Description = request.Description,
             Amount = request.Amount,
             Date = request.Date,
-            Type = request.Type
+            Type = request.Type,
+            UserId = userId
         };
 
         _context.Transactions.Add(transaction);
@@ -39,14 +43,22 @@ public class TransactionsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllTransactions()
     {
-        var transactions = await _context.Transactions.ToListAsync();
+        var userId = User.GetUserId();
+
+        var transactions = await _context.Transactions
+            .Where(t => t.UserId == userId)
+            .ToListAsync();
+
         return Ok(transactions);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetTransactionById(int id)
+    public async Task<IActionResult> GetTransactionById(Guid id)
     {
-        var transaction = await _context.Transactions.FindAsync(id);
+        var userId = User.GetUserId();
+
+        var transaction = await _context.Transactions
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
         if (transaction == null)
         {
@@ -57,10 +69,13 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateTransaction(int id, [FromBody] UpdateTransactionRequest request)
+    public async Task<IActionResult> UpdateTransaction(Guid id, [FromBody] UpdateTransactionRequest request)
     {
-        var transaction = await _context.Transactions.FindAsync(id);
-       
+        var userId = User.GetUserId();
+
+        var transaction = await _context.Transactions
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
         if (transaction == null)
         {
             throw new KeyNotFoundException($"Transaction with ID {id} not found.");
@@ -77,16 +92,19 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTransaction(int id)
+    public async Task<IActionResult> DeleteTransaction(Guid id)
     {
-        var transaciton = await _context.Transactions.FindAsync(id);
+        var userId = User.GetUserId();
 
-        if (transaciton == null)
+        var transaction = await _context.Transactions
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
+        if (transaction == null)
         {
             throw new KeyNotFoundException($"Transaction with ID {id} not found.");
         }
 
-        _context.Transactions.Remove(transaciton);
+        _context.Transactions.Remove(transaction);
         await _context.SaveChangesAsync();
 
         return NoContent();
