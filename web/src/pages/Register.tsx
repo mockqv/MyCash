@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react"
+import undrawDone from "../assets/undraw_done.svg"
 import { supabase } from "../lib/supabase"
 
 type Step = "form" | "success"
@@ -41,38 +42,36 @@ export default function Register() {
   }
 
   if (step === "success") {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-8" style={{ backgroundColor: "#ECE7E2" }}>
-        <div className="flex flex-col items-center gap-6 text-center max-w-sm">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: "#4A776615" }}>
-            <CheckCircle2 size={40} style={{ color: "#4A7766" }} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-2" style={{ color: "#375b4e" }}>
-              Conta criada com sucesso!
-            </h2>
-            <p className="text-sm" style={{ color: "#4A7766" }}>
-              Bem-vindo ao MyCash, {form.name.split(" ")[0]}. Redirecionando para o seu dashboard...
-            </p>
-          </div>
-          <div className="flex gap-1.5 mt-2">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-1.5 rounded-full animate-pulse"
-                style={{
-                  width: i === 0 ? "24px" : "8px",
-                  backgroundColor: "#4A7766",
-                  animationDelay: `${i * 150}ms`,
-                  opacity: i === 0 ? 1 : 0.4,
-                }}
-              />
-            ))}
-          </div>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-8" style={{ backgroundColor: "#ECE7E2" }}>
+      <div className="flex flex-col items-center gap-6 text-center max-w-sm">
+        <img src={undrawDone} alt="Conta criada com sucesso" className="w-64 h-64 object-contain" />
+        <div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: "#375b4e" }}>
+            Conta criada com sucesso!
+          </h2>
+          <p className="text-sm" style={{ color: "#4A7766" }}>
+            Bem-vindo ao MyCash, {form.name.split(" ")[0]}. Redirecionando para o seu dashboard...
+          </p>
+        </div>
+        <div className="flex gap-1.5 mt-2">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-1.5 rounded-full animate-pulse"
+              style={{
+                width: i === 0 ? "24px" : "8px",
+                backgroundColor: "#4A7766",
+                animationDelay: `${i * 150}ms`,
+                opacity: i === 0 ? 1 : 0.4,
+              }}
+            />
+          ))}
         </div>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: "#ECE7E2" }}>
