@@ -1,51 +1,50 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react"
-import axios from "axios"
+import { supabase } from "../lib/supabase"
 
 type Step = "form" | "success"
 
 export default function Register() {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>("form")
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [form, setForm] = useState({ name: "", email: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
-    try {
-      await axios.post(
-        "/api/auth/register",
-        { name, email, password },
-        { withCredentials: true }
-      )
-      setStep("success")
-      setTimeout(() => navigate("/dashboard"), 3000)
-    } catch {
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: { name: form.name },
+      },
+    })
+
+    if (error) {
       setError("Não foi possível criar sua conta. Tente novamente.")
-    } finally {
       setIsLoading(false)
+      return
     }
+
+    setStep("success")
+    setTimeout(() => navigate("/dashboard"), 3000)
   }
 
   if (step === "success") {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center gap-8 px-8"
-        style={{ backgroundColor: "#ECE7E2" }}
-      >
+      <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-8" style={{ backgroundColor: "#ECE7E2" }}>
         <div className="flex flex-col items-center gap-6 text-center max-w-sm">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "#4A776615" }}
-          >
+          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: "#4A776615" }}>
             <CheckCircle2 size={40} style={{ color: "#4A7766" }} />
           </div>
           <div>
@@ -53,7 +52,7 @@ export default function Register() {
               Conta criada com sucesso!
             </h2>
             <p className="text-sm" style={{ color: "#4A7766" }}>
-              Bem-vindo ao MyCash, {name.split(" ")[0]}. Redirecionando para o seu dashboard...
+              Bem-vindo ao MyCash, {form.name.split(" ")[0]}. Redirecionando para o seu dashboard...
             </p>
           </div>
           <div className="flex gap-1.5 mt-2">
@@ -133,8 +132,9 @@ export default function Register() {
               <label className="text-sm font-medium" style={{ color: "#375b4e" }}>Nome completo</label>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                name="name"
+                value={form.name}
+                onChange={handleChange}
                 placeholder="Seu nome"
                 required
                 className="w-full px-4 py-3 rounded-2xl border bg-white text-sm outline-none transition-all"
@@ -148,8 +148,9 @@ export default function Register() {
               <label className="text-sm font-medium" style={{ color: "#375b4e" }}>E-mail</label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                name="email"
+                value={form.email}
+                onChange={handleChange}
                 placeholder="seu@email.com"
                 required
                 className="w-full px-4 py-3 rounded-2xl border bg-white text-sm outline-none transition-all"
@@ -164,8 +165,9 @@ export default function Register() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
                   placeholder="Mínimo 8 caracteres"
                   required
                   minLength={8}
@@ -177,13 +179,13 @@ export default function Register() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
                   style={{ color: "#9ca3af" }}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {password.length > 0 && (
+              {form.password.length > 0 && (
                 <div className="flex gap-1 mt-1">
                   {[...Array(4)].map((_, i) => (
                     <div
@@ -191,7 +193,7 @@ export default function Register() {
                       className="h-1 flex-1 rounded-full transition-all"
                       style={{
                         backgroundColor:
-                          password.length >= (i + 1) * 2
+                          form.password.length >= (i + 1) * 2
                             ? i < 2 ? "#f87171" : i < 3 ? "#fbbf24" : "#4A7766"
                             : "#e5e7eb",
                       }}
@@ -212,8 +214,8 @@ export default function Register() {
               disabled={isLoading}
               className="w-full py-3.5 rounded-2xl text-white text-sm font-semibold transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{ backgroundColor: "#4A7766" }}
-              onMouseEnter={(e) => !isLoading && ((e.target as HTMLElement).style.backgroundColor = "#375b4e")}
-              onMouseLeave={(e) => !isLoading && ((e.target as HTMLElement).style.backgroundColor = "#4A7766")}
+              onMouseEnter={(e) => !isLoading && ((e.currentTarget as HTMLElement).style.backgroundColor = "#375b4e")}
+              onMouseLeave={(e) => !isLoading && ((e.currentTarget as HTMLElement).style.backgroundColor = "#4A7766")}
             >
               {isLoading && <Loader2 size={16} className="animate-spin" />}
               {isLoading ? "Criando conta..." : "Criar conta"}
@@ -222,11 +224,7 @@ export default function Register() {
 
           <p className="text-center text-sm mt-8" style={{ color: "#9ca3af" }}>
             Já tem uma conta?{" "}
-            <Link
-              to="/login"
-              className="font-medium transition-colors"
-              style={{ color: "#4A7766" }}
-            >
+            <Link to="/login" className="font-medium transition-colors" style={{ color: "#4A7766" }}>
               Entrar
             </Link>
           </p>
