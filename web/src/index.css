@@ -2,6 +2,7 @@
 
 @plugin "tailwindcss-animate";
 
+@variant dark (&:where(.dark, .dark *));
 @custom-variant dark (&:is(.dark *));
 
 @theme {

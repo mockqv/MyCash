@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -27,12 +27,15 @@ import {
 import { formatCurrency, formatDate } from "../utils/formatters";
 import { categoryLabels, categoryStyles } from "../utils/transaction";
 import { TransactionType } from "../types/transaction";
+import AvatarMenu from "../components/AvatarMenu";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
+  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
 
   const { data: transactionsData, isLoading: isLoadingTransactions } =
     useTransactions();
@@ -53,13 +56,13 @@ export default function Dashboard() {
     : "??";
 
   return (
-    <div className="flex min-h-screen w-full bg-linen text-slate-900 font-sans">
-      <aside className="w-64 bg-white border-r border-slate-200/60 hidden xl:flex flex-col">
+    <div className="flex min-h-screen w-full bg-linen dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
+      <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200/60 dark:border-slate-700 hidden xl:flex flex-col">
         <div className="p-8 flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-spruce flex items-center justify-center shadow-sm cursor-pointer hover:bg-spruce-dark transition-colors">
             <span className="text-white font-bold text-xl">M</span>
           </div>
-          <h2 className="text-2xl font-bold text-spruce-dark tracking-tight cursor-default">
+          <h2 className="text-2xl font-bold text-spruce-dark dark:text-white tracking-tight cursor-default">
             MyCash
           </h2>
         </div>
@@ -69,21 +72,26 @@ export default function Dashboard() {
             <LayoutGrid className="h-5 w-5" />
             Visão Geral
           </button>
-          <button onClick={() => navigate("/transactions")}
-          className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-spruce-dark hover:bg-slate-50 rounded-2xl font-medium transition-colors cursor-pointer">
+          <button
+            onClick={() => navigate("/transactions")}
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-spruce-dark dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-colors cursor-pointer"
+          >
             <Receipt className="h-5 w-5" />
             Transações
           </button>
         </nav>
 
-        <div className="p-4 pt-0 space-y-1 mb-2 border-t border-slate-100 mx-4 mt-4">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-spruce-dark hover:bg-slate-50 rounded-2xl font-medium transition-colors cursor-pointer mt-2">
+        <div className="p-4 pt-0 space-y-1 mb-2 border-t border-slate-100 dark:border-slate-700 mx-4 mt-4">
+          <button
+            onClick={() => navigate("/settings")}
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-spruce-dark dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-colors cursor-pointer mt-2"
+          >
             <Settings className="h-5 w-5" />
             Ajustes
           </button>
           <button
             onClick={signOut}
-            className="w-full flex items-center gap-3 px-4 py-3 text-red-500/80 hover:text-red-600 hover:bg-red-50 rounded-2xl font-medium transition-colors cursor-pointer"
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-500/80 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-2xl font-medium transition-colors cursor-pointer"
           >
             <LogOut className="h-5 w-5" />
             Sair
@@ -94,17 +102,17 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col h-screen overflow-y-auto">
         <header className="h-24 px-8 lg:px-12 flex items-center justify-between shrink-0">
           <div>
-            <h1 className="text-3xl font-bold text-spruce-dark">
+            <h1 className="text-3xl font-bold text-spruce-dark dark:text-white">
               Painel de Controle
             </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
               Olá, {user?.name?.split(" ")[0] ?? "usuário"}. Acompanhe suas
               finanças deste mês.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="hidden md:flex items-center gap-2 h-10 px-4 bg-white rounded-full text-sm font-medium text-slate-600 border border-slate-200 hover:border-spruce/30 transition-colors shadow-sm mr-2 cursor-pointer">
+            <button className="hidden md:flex items-center gap-2 h-10 px-4 bg-white dark:bg-slate-800 rounded-full text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-spruce/30 transition-colors shadow-sm mr-2 cursor-pointer">
               <Calendar className="h-4 w-4 text-spruce" />
               01 Mar - 31 Mar, 2026
             </button>
@@ -114,7 +122,7 @@ export default function Dashboard() {
               className={`h-10 w-10 rounded-full flex items-center justify-center border shadow-sm transition-colors cursor-pointer ${
                 isPrivacyMode
                   ? "bg-spruce/10 border-spruce text-spruce"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-spruce"
+                  : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-spruce"
               }`}
             >
               {isPrivacyMode ? (
@@ -124,51 +132,60 @@ export default function Dashboard() {
               )}
             </button>
 
-            <div
-              className="h-10 w-10 rounded-full bg-spruce text-white flex items-center justify-center font-bold border-2 border-white shadow-sm cursor-pointer ml-1 hover:bg-spruce-dark transition-colors"
-              title={user?.name ?? ""}
-            >
-              {avatarInitials}
+            <div className="relative">
+              <div
+                ref={avatarRef}
+                onClick={() => setIsAvatarMenuOpen((prev) => !prev)}
+                className="h-10 w-10 rounded-full bg-spruce text-white flex items-center justify-center font-bold border-2 border-white shadow-sm cursor-pointer ml-1 hover:bg-spruce-dark transition-colors"
+                title={user?.name ?? ""}
+              >
+                {avatarInitials}
+              </div>
+              <AvatarMenu
+                isOpen={isAvatarMenuOpen}
+                onClose={() => setIsAvatarMenuOpen(false)}
+                anchorRef={avatarRef}
+              />
             </div>
           </div>
         </header>
 
         <div className="p-8 lg:p-12 pt-0 w-full max-w-[1400px] mx-auto">
           <div className="grid gap-6 sm:grid-cols-3 mb-8">
-            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between h-40">
+            <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between h-40">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-slate-500">
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                   Entradas
                 </span>
-                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-500/20 flex items-center justify-center">
                   <ArrowUpRight className="h-4 w-4 text-green-600" />
                 </div>
               </div>
               <div>
                 {isLoadingSummary ? (
-                  <div className="h-9 w-32 bg-slate-200/70 animate-pulse rounded-md" />
+                  <div className="h-9 w-32 bg-slate-200/70 dark:bg-slate-700 animate-pulse rounded-md" />
                 ) : (
-                  <h3 className="text-3xl font-bold text-slate-900">
+                  <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
                     {maskValue(formatCurrency(summary?.totalIncome ?? 0))}
                   </h3>
                 )}
               </div>
             </div>
 
-            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between h-40">
+            <div className="bg-white dark:bg-slate-800 rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col justify-between h-40">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-slate-500">
+                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                   Saídas
                 </span>
-                <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
                   <ArrowDownRight className="h-4 w-4 text-red-600" />
                 </div>
               </div>
               <div>
                 {isLoadingSummary ? (
-                  <div className="h-9 w-32 bg-slate-200/70 animate-pulse rounded-md" />
+                  <div className="h-9 w-32 bg-slate-200/70 dark:bg-slate-700 animate-pulse rounded-md" />
                 ) : (
-                  <h3 className="text-3xl font-bold text-slate-900">
+                  <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
                     {maskValue(formatCurrency(summary?.totalExpenses ?? 0))}
                   </h3>
                 )}
@@ -197,12 +214,15 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden min-h-[300px]">
-            <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100">
-              <h2 className="text-xl font-bold text-spruce-dark">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden min-h-[300px]">
+            <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-700">
+              <h2 className="text-xl font-bold text-spruce-dark dark:text-white">
                 Últimas Transações
               </h2>
-              <button className="text-sm font-semibold text-spruce hover:text-spruce-dark transition-colors px-4 py-2 bg-spruce/5 rounded-xl cursor-pointer">
+              <button
+                onClick={() => navigate("/transactions")}
+                className="text-sm font-semibold text-spruce hover:text-spruce-dark transition-colors px-4 py-2 bg-spruce/5 dark:bg-spruce/10 rounded-xl cursor-pointer"
+              >
                 Ver todas
               </button>
             </div>
@@ -230,19 +250,19 @@ export default function Dashboard() {
                     Array.from({ length: 4 }).map((_, index) => (
                       <TableRow
                         key={index}
-                        className="border-b border-slate-50 cursor-default"
+                        className="border-b border-slate-50 dark:border-slate-700/50 cursor-default"
                       >
                         <TableCell className="px-4 py-5">
-                          <div className="h-4 w-3/4 bg-slate-200/70 animate-pulse rounded" />
+                          <div className="h-4 w-3/4 bg-slate-200/70 dark:bg-slate-700 animate-pulse rounded" />
                         </TableCell>
                         <TableCell className="px-4 py-5">
-                          <div className="h-6 w-20 bg-slate-200/70 animate-pulse rounded-full" />
+                          <div className="h-6 w-20 bg-slate-200/70 dark:bg-slate-700 animate-pulse rounded-full" />
                         </TableCell>
                         <TableCell className="px-4 py-5">
-                          <div className="h-4 w-24 bg-slate-200/70 animate-pulse rounded" />
+                          <div className="h-4 w-24 bg-slate-200/70 dark:bg-slate-700 animate-pulse rounded" />
                         </TableCell>
                         <TableCell className="px-4 py-5 flex justify-end">
-                          <div className="h-4 w-24 bg-slate-200/70 animate-pulse rounded" />
+                          <div className="h-4 w-24 bg-slate-200/70 dark:bg-slate-700 animate-pulse rounded" />
                         </TableCell>
                       </TableRow>
                     ))
@@ -259,9 +279,9 @@ export default function Dashboard() {
                     transactions.slice(0, 10).map((transaction) => (
                       <TableRow
                         key={transaction.id}
-                        className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
+                        className="border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors"
                       >
-                        <TableCell className="font-bold text-slate-700 px-4 py-4">
+                        <TableCell className="font-bold text-slate-700 dark:text-slate-200 px-4 py-4">
                           {transaction.description}
                         </TableCell>
                         <TableCell className="px-4 py-4">
@@ -271,7 +291,7 @@ export default function Dashboard() {
                             {categoryLabels[transaction.category]}
                           </span>
                         </TableCell>
-                        <TableCell className="text-slate-500 font-medium px-4 py-4">
+                        <TableCell className="text-slate-500 dark:text-slate-400 font-medium px-4 py-4">
                           {formatDate(transaction.date)}
                         </TableCell>
                         <TableCell
