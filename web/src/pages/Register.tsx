@@ -19,27 +19,38 @@ export default function Register() {
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+  e.preventDefault()
+  setError("")
+  setIsLoading(true)
 
-    const { error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: { name: form.name },
-      },
-    })
+  const { error: signUpError } = await supabase.auth.signUp({
+    email: form.email,
+    password: form.password,
+    options: {
+      data: { name: form.name },
+    },
+  })
 
-    if (error) {
-      setError("Não foi possível criar sua conta. Tente novamente.")
-      setIsLoading(false)
-      return
-    }
-
-    setStep("success")
-    setTimeout(() => navigate("/dashboard"), 3000)
+  if (signUpError) {
+    setError("Não foi possível criar sua conta. Tente novamente.")
+    setIsLoading(false)
+    return
   }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: form.email,
+    password: form.password,
+  })
+
+  if (signInError) {
+    setError("Conta criada, mas não foi possível entrar automaticamente.")
+    setIsLoading(false)
+    return
+  }
+
+  setStep("success")
+  setTimeout(() => navigate("/dashboard"), 3000)
+}
 
   if (step === "success") {
   return (
