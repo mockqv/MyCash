@@ -1,27 +1,37 @@
-import { Loader2, Trash2 } from "lucide-react"
-import { useDeleteTransaction } from "../hooks/useTransactionMutations"
-import type { Transaction } from "../types/transaction"
+import { Loader2, Trash2 } from "lucide-react";
+import { useDeleteTransaction } from "../hooks/useTransactionMutations";
+import type { Transaction } from "../types/transaction";
 
 type Props = {
-  isOpen: boolean
-  onClose: () => void
-  transaction: Transaction | null
-}
+  isOpen: boolean;
+  onClose: () => void;
+  transaction: Transaction | null;
+  onSuccess?: () => void;
+};
 
-export default function DeleteConfirmModal({ isOpen, onClose, transaction }: Props) {
-  const { mutateAsync: deleteTransaction, isPending } = useDeleteTransaction()
+export default function DeleteConfirmModal({
+  isOpen,
+  onClose,
+  transaction,
+  onSuccess,
+}: Props) {
+  const { mutateAsync: deleteTransaction, isPending } = useDeleteTransaction();
 
   async function handleDelete() {
-    if (!transaction) return
-    await deleteTransaction(transaction.id)
-    onClose()
+    if (!transaction) return;
+    await deleteTransaction(transaction.id);
+    onSuccess?.();
+    onClose();
   }
 
-  if (!isOpen || !transaction) return null
+  if (!isOpen || !transaction) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       <div className="relative bg-white rounded-[32px] shadow-xl w-full max-w-sm mx-4 p-8 flex flex-col items-center text-center gap-6">
         <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
@@ -29,11 +39,15 @@ export default function DeleteConfirmModal({ isOpen, onClose, transaction }: Pro
         </div>
 
         <div>
-          <h2 className="text-lg font-bold mb-1" style={{ color: "#375b4e" }}>Excluir transação</h2>
+          <h2 className="text-lg font-bold mb-1" style={{ color: "#375b4e" }}>
+            Excluir transação
+          </h2>
           <p className="text-sm text-slate-500">
             Tem certeza que deseja excluir{" "}
-            <span className="font-semibold text-slate-700">"{transaction.description}"</span>?
-            Essa ação não pode ser desfeita.
+            <span className="font-semibold text-slate-700">
+              "{transaction.description}"
+            </span>
+            ? Essa ação não pode ser desfeita.
           </p>
         </div>
 
@@ -55,5 +69,5 @@ export default function DeleteConfirmModal({ isOpen, onClose, transaction }: Pro
         </div>
       </div>
     </div>
-  )
+  );
 }

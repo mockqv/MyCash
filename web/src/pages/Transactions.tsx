@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import {
   LayoutGrid,
   Receipt,
@@ -9,7 +9,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react"
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,53 +17,63 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { useAuth } from "../contexts/AuthContext"
-import { useTransactions } from "../hooks/useTransactions"
-import { formatCurrency, formatDate } from "../utils/formatters"
-import { categoryLabels, categoryStyles } from "../utils/transaction"
-import { TransactionType } from "../types/transaction"
-import type { Transaction } from "../types/transaction"
-import TransactionModal from "../components/TransactionModal"
-import DeleteConfirmModal from "../components/DeleteConfirmModal"
-import { useNavigate } from "react-router-dom"
+} from "@/components/ui/table";
+import { useAuth } from "../contexts/AuthContext";
+import { useTransactions } from "../hooks/useTransactions";
+import { formatCurrency, formatDate } from "../utils/formatters";
+import { categoryLabels, categoryStyles } from "../utils/transaction";
+import { TransactionType } from "../types/transaction";
+import type { Transaction } from "../types/transaction";
+import TransactionModal from "../components/TransactionModal";
+import DeleteConfirmModal from "../components/DeleteConfirmModal";
+import ToastContainer from "../components/ToastContainer";
+import { useToast } from "../hooks/useToast";
+import { useNavigate } from "react-router-dom";
 
 export default function Transactions() {
-  const { user, signOut } = useAuth()
-  const navigate = useNavigate()
-  const [page, setPage] = useState(1)
-  const pageSize = 10
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
 
-  const { data: transactionsData, isLoading } = useTransactions(page, pageSize)
-  const transactions = transactionsData?.items ?? []
-  const totalPages = transactionsData?.totalPages ?? 1
+  const { data: transactionsData, isLoading } = useTransactions(page, pageSize);
+  const transactions = transactionsData?.items ?? [];
+  const totalPages = transactionsData?.totalPages ?? 1;
+
+  const { toasts, addToast } = useToast();
 
   const avatarInitials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
-    : "??"
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "??";
 
   function handleEdit(transaction: Transaction) {
-    setSelectedTransaction(transaction)
-    setIsModalOpen(true)
+    setSelectedTransaction(transaction);
+    setIsModalOpen(true);
   }
 
   function handleDelete(transaction: Transaction) {
-    setSelectedTransaction(transaction)
-    setIsDeleteOpen(true)
+    setSelectedTransaction(transaction);
+    setIsDeleteOpen(true);
   }
 
   function handleCloseModal() {
-    setIsModalOpen(false)
-    setSelectedTransaction(null)
+    setIsModalOpen(false);
+    setSelectedTransaction(null);
   }
 
   function handleCloseDelete() {
-    setIsDeleteOpen(false)
-    setSelectedTransaction(null)
+    setIsDeleteOpen(false);
+    setSelectedTransaction(null);
   }
 
   return (
@@ -73,7 +83,9 @@ export default function Transactions() {
           <div className="h-10 w-10 rounded-xl bg-spruce flex items-center justify-center shadow-sm cursor-pointer hover:bg-spruce-dark transition-colors">
             <span className="text-white font-bold text-xl">M</span>
           </div>
-          <h2 className="text-2xl font-bold text-spruce-dark tracking-tight cursor-default">MyCash</h2>
+          <h2 className="text-2xl font-bold text-spruce-dark tracking-tight cursor-default">
+            MyCash
+          </h2>
         </div>
 
         <nav className="flex-1 px-4 space-y-2 mt-2">
@@ -119,8 +131,14 @@ export default function Transactions() {
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 h-10 px-5 rounded-full text-white text-sm font-semibold transition-colors cursor-pointer"
               style={{ backgroundColor: "#4A7766" }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "#375b4e")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "#4A7766")}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLElement).style.backgroundColor =
+                  "#375b4e")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLElement).style.backgroundColor =
+                  "#4A7766")
+              }
             >
               <Plus size={16} />
               Nova transação
@@ -141,17 +159,30 @@ export default function Transactions() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-none hover:bg-transparent cursor-default">
-                    <TableHead className="font-semibold text-slate-400 h-10 px-4">Descrição</TableHead>
-                    <TableHead className="font-semibold text-slate-400 h-10 px-4">Categoria</TableHead>
-                    <TableHead className="font-semibold text-slate-400 h-10 px-4">Data</TableHead>
-                    <TableHead className="text-right font-semibold text-slate-400 h-10 px-4">Valor</TableHead>
-                    <TableHead className="text-right font-semibold text-slate-400 h-10 px-4">Ações</TableHead>
+                    <TableHead className="font-semibold text-slate-400 h-10 px-4">
+                      Descrição
+                    </TableHead>
+                    <TableHead className="font-semibold text-slate-400 h-10 px-4">
+                      Categoria
+                    </TableHead>
+                    <TableHead className="font-semibold text-slate-400 h-10 px-4">
+                      Data
+                    </TableHead>
+                    <TableHead className="text-right font-semibold text-slate-400 h-10 px-4">
+                      Valor
+                    </TableHead>
+                    <TableHead className="text-right font-semibold text-slate-400 h-10 px-4">
+                      Ações
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     Array.from({ length: pageSize }).map((_, index) => (
-                      <TableRow key={index} className="border-b border-slate-50 cursor-default">
+                      <TableRow
+                        key={index}
+                        className="border-b border-slate-50 cursor-default"
+                      >
                         <TableCell className="px-4 py-5">
                           <div className="h-4 w-3/4 bg-slate-200/70 animate-pulse rounded" />
                         </TableCell>
@@ -171,7 +202,10 @@ export default function Transactions() {
                     ))
                   ) : transactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-slate-400 py-16 text-sm">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center text-slate-400 py-16 text-sm"
+                      >
                         Nenhuma transação encontrada.
                       </TableCell>
                     </TableRow>
@@ -185,14 +219,18 @@ export default function Transactions() {
                           {transaction.description}
                         </TableCell>
                         <TableCell className="px-4 py-4">
-                          <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${categoryStyles[transaction.category]}`}>
+                          <span
+                            className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${categoryStyles[transaction.category]}`}
+                          >
                             {categoryLabels[transaction.category]}
                           </span>
                         </TableCell>
                         <TableCell className="text-slate-500 font-medium px-4 py-4">
                           {formatDate(transaction.date)}
                         </TableCell>
-                        <TableCell className={`text-right font-bold text-base px-4 py-4 ${transaction.type === TransactionType.Receita ? "text-green-600" : "text-red-600"}`}>
+                        <TableCell
+                          className={`text-right font-bold text-base px-4 py-4 ${transaction.type === TransactionType.Receita ? "text-green-600" : "text-red-600"}`}
+                        >
                           {`${transaction.type === TransactionType.Receita ? "+" : "-"} ${formatCurrency(transaction.amount)}`}
                         </TableCell>
                         <TableCell className="text-right px-4 py-4">
@@ -255,7 +293,10 @@ export default function Transactions() {
         isOpen={isDeleteOpen}
         onClose={handleCloseDelete}
         transaction={selectedTransaction}
+        onSuccess={() => addToast("Transação excluída com sucesso.")}
       />
+
+      <ToastContainer toasts={toasts} />
     </div>
-  )
+  );
 }
