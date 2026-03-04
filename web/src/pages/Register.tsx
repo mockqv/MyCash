@@ -8,7 +8,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 type Step = "form" | "success";
 
 export default function Register() {
-  usePageTitle("Cadastro")
+  usePageTitle("Cadastro");
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("form");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -92,9 +92,11 @@ export default function Register() {
     <div className="min-h-screen flex bg-[#f0f2f5]">
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-16 bg-slate-900">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-2xl bg-white/10 flex items-center justify-center">
-            <span className="text-white font-black text-base">M</span>
-          </div>
+          <img
+            src="/Icon.png"
+            alt="MyCash"
+            className="h-9 w-9 object-contain"
+          />
           <span className="text-white font-black text-lg tracking-tight">
             MyCash
           </span>
@@ -140,9 +142,11 @@ export default function Register() {
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-12">
-            <div className="h-8 w-8 rounded-2xl bg-slate-900 flex items-center justify-center">
-              <span className="text-white font-black text-sm">M</span>
-            </div>
+            <img
+              src="/Icon.png"
+              alt="MyCash"
+              className="h-8 w-8 object-contain"
+            />
             <span className="font-black text-slate-900 text-base">MyCash</span>
           </div>
 
