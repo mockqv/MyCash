@@ -32,21 +32,19 @@ import AvatarMenu from "../components/AvatarMenu";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
-function CustomTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
+function CustomTooltip({ active, payload, label, isPrivacyMode }: any) {
+  if (!active || !payload?.length) return null
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-lg px-4 py-3 text-xs">
-      <p className="font-bold text-slate-700 dark:text-slate-200 mb-2">
-        {label}
-      </p>
+      <p className="font-bold text-slate-700 dark:text-slate-200 mb-2">{label}</p>
       <p className="text-green-600 font-semibold">
-        Receitas: {formatCurrency(payload[0]?.value)}
+        Receitas: {isPrivacyMode ? "••••" : formatCurrency(payload[0]?.value)}
       </p>
       <p className="text-red-500 font-semibold">
-        Despesas: {formatCurrency(payload[1]?.value)}
+        Despesas: {isPrivacyMode ? "••••" : formatCurrency(payload[1]?.value)}
       </p>
     </div>
-  );
+  )
 }
 
 export default function Dashboard() {
@@ -318,10 +316,7 @@ export default function Dashboard() {
                     tickLine={false}
                     tickFormatter={(v) => `${v / 1000}k`}
                   />
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
-                  />
+                  <Tooltip content={<CustomTooltip isPrivacyMode={isPrivacyMode} />} cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }} />
                   <Area
                     type="monotone"
                     dataKey="receitas"
