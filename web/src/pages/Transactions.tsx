@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
+  UserRound,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTransactions } from "../hooks/useTransactions";
@@ -45,15 +46,6 @@ export default function Transactions() {
   const totalPages = transactionsData?.totalPages ?? 1;
 
   const { toasts, addToast } = useToast();
-
-  const avatarInitials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "??";
 
   function handleEdit(transaction: Transaction) {
     setSelectedTransaction(transaction);
@@ -144,7 +136,7 @@ export default function Transactions() {
                 className="h-10 w-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-black text-sm cursor-pointer hover:opacity-80 transition-opacity"
                 title={user?.name ?? ""}
               >
-                {avatarInitials}
+                {<UserRound size={18} />}
               </div>
               <AvatarMenu
                 isOpen={isAvatarMenuOpen}

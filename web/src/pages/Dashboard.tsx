@@ -9,6 +9,7 @@ import {
   LogOut,
   EyeOff,
   Eye,
+  UserRound
 } from "lucide-react";
 import {
   AreaChart,
@@ -66,15 +67,6 @@ export default function Dashboard() {
   const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0);
 
   const maskValue = (value: string) => (isPrivacyMode ? "••••" : value);
-
-  const avatarInitials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "??";
 
   const chartData = useMemo(() => {
     const months = [
@@ -182,7 +174,7 @@ export default function Dashboard() {
                 className="h-10 w-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-black text-sm cursor-pointer hover:opacity-80 transition-opacity"
                 title={user?.name ?? ""}
               >
-                {avatarInitials}
+                {<UserRound size={18}/>}
               </div>
               <AvatarMenu
                 isOpen={isAvatarMenuOpen}
