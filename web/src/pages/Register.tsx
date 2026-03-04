@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import undrawDone from "../assets/undraw_done.svg";
 import { supabase } from "../lib/supabase";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Step = "form" | "success";
 
 export default function Register() {
+  usePageTitle("Cadastro")
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("form");
   const [form, setForm] = useState({ name: "", email: "", password: "" });

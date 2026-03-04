@@ -2,8 +2,10 @@ import { LayoutGrid, Receipt, Settings, LogOut, Moon, Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function SettingsPage() {
+  usePageTitle("Configurações")
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -12,11 +14,7 @@ export default function SettingsPage() {
     <div className="flex min-h-screen w-full bg-[#f0f2f5] dark:bg-slate-900 font-sans">
       <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 hidden xl:flex flex-col">
         <div className="p-8 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-slate-900 dark:bg-white flex items-center justify-center shadow-sm cursor-pointer">
-            <span className="text-white dark:text-slate-900 font-black text-lg">
-              M
-            </span>
-          </div>
+          <img src="/Icon.png" alt="MyCash" className="h-10 w-10 object-contain cursor-pointer flex-shrink-0" />
           <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight cursor-default">
             MyCash
           </h2>
