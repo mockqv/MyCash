@@ -34,35 +34,23 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#ECE7E2" }}>
-      <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-16"
-        style={{ backgroundColor: "#375b4e" }}
-      >
+    <div className="min-h-screen flex bg-[#f0f2f5]">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-16 bg-slate-900">
         <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "#4A7766" }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"
-                fill="white"
-                fillOpacity="0.7"
-              />
-            </svg>
+          <div className="h-9 w-9 rounded-2xl bg-white/10 flex items-center justify-center">
+            <span className="text-white font-black text-base">M</span>
           </div>
-          <span className="text-white font-semibold text-lg tracking-tight">
+          <span className="text-white font-black text-lg tracking-tight">
             MyCash
           </span>
         </div>
 
         <div>
-          <blockquote className="text-white/60 text-xl font-light leading-relaxed italic mb-8">
+          <blockquote className="text-white/50 text-xl font-light leading-relaxed italic mb-10">
             "Entender para onde vai o seu dinheiro é o primeiro passo para ir
             para onde você quer."
           </blockquote>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-0">
             {[
               {
                 label: "Entradas este mês",
@@ -78,11 +66,11 @@ export default function Login() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex justify-between items-center py-3 border-b border-white/10"
+                className="flex justify-between items-center py-4 border-b border-white/8"
               >
-                <span className="text-white/50 text-sm">{item.label}</span>
+                <span className="text-white/40 text-sm">{item.label}</span>
                 <span
-                  className="font-semibold text-sm"
+                  className="font-black text-sm"
                   style={{ color: item.color }}
                 >
                   {item.value}
@@ -98,45 +86,26 @@ export default function Login() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-12">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "#4A7766" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"
-                  fill="white"
-                />
-              </svg>
+            <div className="h-8 w-8 rounded-2xl bg-slate-900 flex items-center justify-center">
+              <span className="text-white font-black text-sm">M</span>
             </div>
-            <span
-              className="font-semibold text-base tracking-tight"
-              style={{ color: "#375b4e" }}
-            >
-              MyCash
-            </span>
+            <span className="font-black text-slate-900 text-base">MyCash</span>
           </div>
 
           <div className="mb-10">
-            <h1
-              className="text-3xl font-bold mb-2"
-              style={{ color: "#375b4e" }}
-            >
+            <h1 className="text-2xl font-black text-slate-900 mb-1">
               Bem-vindo de volta
             </h1>
-            <p className="text-sm" style={{ color: "#4A7766" }}>
+            <p className="text-sm text-slate-400">
               Acesse sua conta para continuar
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label
-                className="text-sm font-medium"
-                style={{ color: "#375b4e" }}
-              >
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
                 E-mail
               </label>
               <input
@@ -146,25 +115,18 @@ export default function Login() {
                 onChange={handleChange}
                 placeholder="seu@email.com"
                 required
-                className="w-full px-4 py-3 rounded-2xl border bg-white text-sm outline-none transition-all"
-                style={{ borderColor: "#d4cdc8", color: "#375b4e" }}
-                onFocus={(e) => (e.target.style.borderColor = "#4A7766")}
-                onBlur={(e) => (e.target.style.borderColor = "#d4cdc8")}
+                className="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-white text-sm outline-none transition-all text-slate-900 placeholder:text-slate-300 focus:border-slate-900"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <div className="flex justify-between items-center">
-                <label
-                  className="text-sm font-medium"
-                  style={{ color: "#375b4e" }}
-                >
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
                   Senha
                 </label>
                 <button
                   type="button"
-                  className="text-xs cursor-pointer transition-colors"
-                  style={{ color: "#4A7766" }}
+                  className="text-xs font-medium text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
                 >
                   Esqueceu a senha?
                 </button>
@@ -177,16 +139,12 @@ export default function Login() {
                   onChange={handleChange}
                   placeholder="••••••••"
                   required
-                  className="w-full px-4 py-3 pr-12 rounded-2xl border bg-white text-sm outline-none transition-all"
-                  style={{ borderColor: "#d4cdc8", color: "#375b4e" }}
-                  onFocus={(e) => (e.target.style.borderColor = "#4A7766")}
-                  onBlur={(e) => (e.target.style.borderColor = "#d4cdc8")}
+                  className="w-full px-4 py-3 pr-12 rounded-2xl border border-slate-200 bg-white text-sm outline-none transition-all text-slate-900 placeholder:text-slate-300 focus:border-slate-900"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
-                  style={{ color: "#9ca3af" }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-slate-300 hover:text-slate-500 transition-colors"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -194,7 +152,7 @@ export default function Login() {
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
+              <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
                 {error}
               </div>
             )}
@@ -202,30 +160,18 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-2xl text-white text-sm font-semibold transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{ backgroundColor: "#4A7766" }}
-              onMouseEnter={(e) =>
-                !isLoading &&
-                ((e.currentTarget as HTMLElement).style.backgroundColor =
-                  "#375b4e")
-              }
-              onMouseLeave={(e) =>
-                !isLoading &&
-                ((e.currentTarget as HTMLElement).style.backgroundColor =
-                  "#4A7766")
-              }
+              className="w-full py-3.5 rounded-2xl bg-slate-900 text-white text-sm font-semibold transition-opacity hover:opacity-80 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
             >
-              {isLoading && <Loader2 size={16} className="animate-spin" />}
+              {isLoading && <Loader2 size={15} className="animate-spin" />}
               {isLoading ? "Entrando..." : "Entrar"}
             </button>
           </form>
 
-          <p className="text-center text-sm mt-8" style={{ color: "#9ca3af" }}>
+          <p className="text-center text-sm mt-8 text-slate-400">
             Ainda não tem conta?{" "}
             <Link
               to="/register"
-              className="font-medium transition-colors"
-              style={{ color: "#4A7766" }}
+              className="font-semibold text-slate-900 hover:opacity-70 transition-opacity"
             >
               Criar conta
             </Link>
