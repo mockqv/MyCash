@@ -1,6 +1,6 @@
 export const TransactionType = {
-  Despesa: 0,
-  Receita: 1,
+  Receita: 0,
+  Despesa: 1,
 } as const
 
 export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
@@ -36,6 +36,5 @@ export type PaginatedTransactions = {
 
 export type TransactionSummary = {
   totalIncome: number
-  totalExpenses: number
-  balance: number
+  totalExpense: number
 }

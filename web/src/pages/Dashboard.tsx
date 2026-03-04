@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -30,21 +30,6 @@ import { TransactionType } from "../types/transaction";
 import AvatarMenu from "../components/AvatarMenu";
 import { useNavigate } from "react-router-dom";
 
-const chartData = [
-  { month: "Jan", receitas: 3200, despesas: 1800 },
-  { month: "Fev", receitas: 4100, despesas: 2200 },
-  { month: "Mar", receitas: 3800, despesas: 2900 },
-  { month: "Abr", receitas: 5200, despesas: 2100 },
-  { month: "Mai", receitas: 4700, despesas: 3100 },
-  { month: "Jun", receitas: 5900, despesas: 2400 },
-  { month: "Jul", receitas: 4800, despesas: 2800 },
-  { month: "Ago", receitas: 6200, despesas: 3200 },
-  { month: "Set", receitas: 5400, despesas: 2600 },
-  { month: "Out", receitas: 7100, despesas: 3400 },
-  { month: "Nov", receitas: 6300, despesas: 2900 },
-  { month: "Dez", receitas: 8400, despesas: 3100 },
-];
-
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -70,12 +55,16 @@ export default function Dashboard() {
   const avatarRef = useRef<HTMLDivElement>(null);
 
   const { data: transactionsData, isLoading: isLoadingTransactions } =
-    useTransactions();
+    useTransactions(1, 10);
+  const { data: allTransactionsData } = useTransactions(1, 100);
   const { data: summary, isLoading: isLoadingSummary } =
     useTransactionSummary();
 
   const transactions = transactionsData?.items ?? [];
+  const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0);
+
   const maskValue = (value: string) => (isPrivacyMode ? "••••" : value);
+
   const avatarInitials = user?.name
     ? user.name
         .split(" ")
@@ -84,6 +73,39 @@ export default function Dashboard() {
         .join("")
         .toUpperCase()
     : "??";
+
+  const chartData = useMemo(() => {
+    const months = [
+      "Jan",
+      "Fev",
+      "Mar",
+      "Abr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Set",
+      "Out",
+      "Nov",
+      "Dez",
+    ];
+    const grouped = months.map((month) => ({
+      month,
+      receitas: 0,
+      despesas: 0,
+    }));
+
+    allTransactionsData?.items?.forEach((t) => {
+      const monthIndex = new Date(t.date).getMonth();
+      if (t.type === TransactionType.Receita) {
+        grouped[monthIndex].receitas += t.amount;
+      } else {
+        grouped[monthIndex].despesas += t.amount;
+      }
+    });
+
+    return grouped;
+  }, [allTransactionsData]);
 
   return (
     <div className="flex min-h-screen w-full bg-[#f0f2f5] dark:bg-slate-900 font-sans">
@@ -106,7 +128,7 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => navigate("/transactions")}
-            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
           >
             <Receipt className="h-4 w-4" />
             Transações
@@ -116,7 +138,7 @@ export default function Dashboard() {
         <div className="p-4 space-y-1 mb-2 mx-2">
           <button
             onClick={() => navigate("/settings")}
-            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
           >
             <Settings className="h-4 w-4" />
             Ajustes
@@ -206,7 +228,7 @@ export default function Dashboard() {
                 <div className="h-8 w-36 bg-slate-100 dark:bg-slate-700 animate-pulse rounded-xl" />
               ) : (
                 <p className="text-2xl font-black text-slate-900 dark:text-white">
-                  {maskValue(formatCurrency(summary?.totalExpenses ?? 0))}
+                  {maskValue(formatCurrency(summary?.totalExpense ?? 0))}
                 </p>
               )}
             </div>
@@ -226,7 +248,7 @@ export default function Dashboard() {
                 <div className="h-8 w-36 bg-white/10 dark:bg-slate-900/10 animate-pulse rounded-xl" />
               ) : (
                 <p className="text-2xl font-black text-white dark:text-slate-900 relative z-10">
-                  {maskValue(formatCurrency(summary?.balance ?? 0))}
+                  {maskValue(formatCurrency(balance))}
                 </p>
               )}
             </div>
@@ -304,7 +326,7 @@ export default function Dashboard() {
                     tick={{ fontSize: 11, fill: "#94a3b8" }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v: any) => `${v / 1000}k`}
+                    tickFormatter={(v) => `${v / 1000}k`}
                   />
                   <Tooltip
                     content={<CustomTooltip />}
