@@ -23,6 +23,7 @@ import TransactionModal from "../components/TransactionModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import ToastContainer from "../components/ToastContainer";
 import AvatarMenu from "../components/AvatarMenu";
+import MonthYearPicker from "../components/MonthYearPicker";
 import { useToast } from "../hooks/useToast";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -31,6 +32,10 @@ export default function Transactions() {
   usePageTitle("Transações");
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -41,7 +46,13 @@ export default function Transactions() {
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
 
-  const { data: transactionsData, isLoading } = useTransactions(page, pageSize);
+  const { data: transactionsData, isLoading } = useTransactions({
+    page,
+    pageSize,
+    month: selectedMonth,
+    year: selectedYear,
+  });
+
   const transactions = transactionsData?.items ?? [];
   const totalPages = transactionsData?.totalPages ?? 1;
 
@@ -67,11 +78,21 @@ export default function Transactions() {
     setSelectedTransaction(null);
   }
 
+  function handleMonthChange(month: number, year: number) {
+    setSelectedMonth(month);
+    setSelectedYear(year);
+    setPage(1);
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-[#f0f2f5] dark:bg-slate-900 font-sans">
       <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 hidden xl:flex flex-col">
         <div className="p-8 flex items-center gap-3">
-          <img src="/Icon.png" alt="MyCash" className="h-10 w-10 object-contain cursor-pointer flex-shrink-0" />
+          <img
+            src="/Icon.png"
+            alt="MyCash"
+            className="h-10 w-10 object-contain cursor-pointer flex-shrink-0"
+          />
           <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight cursor-default">
             MyCash
           </h2>
@@ -80,7 +101,7 @@ export default function Transactions() {
         <nav className="flex-1 px-4 space-y-1 mt-2">
           <button
             onClick={() => navigate("/dashboard")}
-            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
           >
             <LayoutGrid className="h-4 w-4" />
             Visão Geral
@@ -94,7 +115,7 @@ export default function Transactions() {
         <div className="p-4 space-y-1 mb-2 mx-2">
           <button
             onClick={() => navigate("/settings")}
-            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-2xl font-medium transition-all cursor-pointer text-sm"
           >
             <Settings className="h-4 w-4" />
             Ajustes
@@ -121,6 +142,12 @@ export default function Transactions() {
           </div>
 
           <div className="flex items-center gap-3">
+            <MonthYearPicker
+              month={selectedMonth}
+              year={selectedYear}
+              onChange={handleMonthChange}
+            />
+
             <button
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 h-10 px-5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold transition-opacity hover:opacity-80 cursor-pointer"
@@ -133,10 +160,10 @@ export default function Transactions() {
               <div
                 ref={avatarRef}
                 onClick={() => setIsAvatarMenuOpen((prev) => !prev)}
-                className="h-10 w-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-black text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                className="h-10 w-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                 title={user?.name ?? ""}
               >
-                {<UserRound size={18} />}
+                <UserRound size={18} />
               </div>
               <AvatarMenu
                 isOpen={isAvatarMenuOpen}
@@ -199,11 +226,16 @@ export default function Transactions() {
                     ))
                   ) : transactions.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={5}
-                        className="text-center text-slate-400 py-20 text-sm"
-                      >
-                        Nenhuma transação encontrada.
+                      <td colSpan={5} className="text-center py-20">
+                        <p className="text-sm text-slate-400">
+                          Nenhuma transação em
+                        </p>
+                        <p className="text-xs font-semibold text-slate-300 dark:text-slate-600 mt-1">
+                          {new Intl.DateTimeFormat("pt-BR", {
+                            month: "long",
+                            year: "numeric",
+                          }).format(new Date(selectedYear, selectedMonth - 1))}
+                        </p>
                       </td>
                     </tr>
                   ) : (

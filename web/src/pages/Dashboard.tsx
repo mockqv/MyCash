@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo } from "react"
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -9,8 +9,8 @@ import {
   LogOut,
   EyeOff,
   Eye,
-  UserRound
-} from "lucide-react";
+  UserRound,
+} from "lucide-react"
 import {
   AreaChart,
   Area,
@@ -19,18 +19,15 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-} from "recharts";
-import { useAuth } from "../contexts/AuthContext";
-import {
-  useTransactions,
-  useTransactionSummary,
-} from "../hooks/useTransactions";
-import { formatCurrency, formatDate } from "../utils/formatters";
-import { categoryLabels, categoryStyles } from "../utils/transaction";
-import { TransactionType } from "../types/transaction";
-import AvatarMenu from "../components/AvatarMenu";
-import { useNavigate } from "react-router-dom";
-import { usePageTitle } from "@/hooks/usePageTitle";
+} from "recharts"
+import { useAuth } from "../contexts/AuthContext"
+import { useTransactions, useTransactionSummary } from "../hooks/useTransactions"
+import { formatCurrency, formatDate } from "../utils/formatters"
+import { TransactionType } from "../types/transaction"
+import AvatarMenu from "../components/AvatarMenu"
+import MonthYearPicker from "../components/MonthYearPicker"
+import { useNavigate } from "react-router-dom"
+import { usePageTitle } from "../hooks/usePageTitle"
 
 function CustomTooltip({ active, payload, label, isPrivacyMode }: any) {
   if (!active || !payload?.length) return null
@@ -48,65 +45,58 @@ function CustomTooltip({ active, payload, label, isPrivacyMode }: any) {
 }
 
 export default function Dashboard() {
-  usePageTitle("Painel de Controle");
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [isPrivacyMode, setIsPrivacyMode] = useState(true);
-  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
-  const avatarRef = useRef<HTMLDivElement>(null);
+  usePageTitle("Painel de Controle")
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
 
-  const { data: transactionsData, isLoading: isLoadingTransactions } =
-    useTransactions(1, 10);
-  const { data: allTransactionsData } = useTransactions(1, 100);
-  const { data: summary, isLoading: isLoadingSummary } =
-    useTransactionSummary();
+  const now = new Date()
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
+  const [isPrivacyMode, setIsPrivacyMode] = useState(true)
+  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false)
+  const avatarRef = useRef<HTMLDivElement>(null)
 
-  const transactions = transactionsData?.items ?? [];
-  const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0);
+  const { data: transactionsData, isLoading: isLoadingTransactions } = useTransactions({
+    page: 1,
+    pageSize: 10,
+    month: selectedMonth,
+    year: selectedYear,
+  })
 
-  const maskValue = (value: string) => (isPrivacyMode ? "••••" : value);
+  const { data: allTransactionsData } = useTransactions({
+    page: 1,
+    pageSize: 100,
+    year: selectedYear,
+  })
+
+  const { data: summary, isLoading: isLoadingSummary } = useTransactionSummary(selectedMonth, selectedYear)
+
+  const transactions = transactionsData?.items ?? []
+  const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0)
+  const maskValue = (value: string) => (isPrivacyMode ? "••••" : value)
 
   const chartData = useMemo(() => {
-    const months = [
-      "Jan",
-      "Fev",
-      "Mar",
-      "Abr",
-      "Mai",
-      "Jun",
-      "Jul",
-      "Ago",
-      "Set",
-      "Out",
-      "Nov",
-      "Dez",
-    ];
-    const grouped = months.map((month) => ({
-      month,
-      receitas: 0,
-      despesas: 0,
-    }));
+    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    const grouped = months.map((month) => ({ month, receitas: 0, despesas: 0 }))
 
     allTransactionsData?.items?.forEach((t) => {
-      const monthIndex = new Date(t.date).getMonth();
+      const monthIndex = new Date(t.date).getMonth()
       if (t.type === TransactionType.Receita) {
-        grouped[monthIndex].receitas += t.amount;
+        grouped[monthIndex].receitas += t.amount
       } else {
-        grouped[monthIndex].despesas += t.amount;
+        grouped[monthIndex].despesas += t.amount
       }
-    });
+    })
 
-    return grouped;
-  }, [allTransactionsData]);
+    return grouped
+  }, [allTransactionsData])
 
   return (
     <div className="flex min-h-screen w-full bg-[#f0f2f5] dark:bg-slate-900 font-sans">
       <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 hidden xl:flex flex-col">
         <div className="p-8 flex items-center gap-3">
           <img src="/Icon.png" alt="MyCash" className="h-10 w-10 object-contain cursor-pointer flex-shrink-0" />
-          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight cursor-default">
-            MyCash
-          </h2>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight cursor-default">MyCash</h2>
         </div>
 
         <nav className="flex-1 px-4 space-y-1 mt-2">
@@ -144,35 +134,34 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col overflow-y-auto">
         <header className="px-8 lg:px-10 pt-8 pb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-              Painel de Controle
-            </h1>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">Painel de Controle</h1>
             <p className="text-sm text-slate-400 mt-0.5">
-              Olá, {user?.name?.split(" ")[0] ?? "usuário"}. Aqui está o resumo
-              do seu mês.
+              Olá, {user?.name?.split(" ")[0] ?? "usuário"}. Aqui está o resumo do seu mês.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
+            <MonthYearPicker
+              month={selectedMonth}
+              year={selectedYear}
+              onChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y) }}
+            />
+
             <button
               onClick={() => setIsPrivacyMode(!isPrivacyMode)}
               className="h-10 w-10 rounded-2xl flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm transition-colors cursor-pointer text-slate-400 hover:text-slate-700 dark:hover:text-white"
             >
-              {isPrivacyMode ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              {isPrivacyMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
 
             <div className="relative">
               <div
                 ref={avatarRef}
                 onClick={() => setIsAvatarMenuOpen((prev) => !prev)}
-                className="h-10 w-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-black text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                className="h-10 w-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                 title={user?.name ?? ""}
               >
-                {<UserRound size={18}/>}
+                <UserRound size={18} />
               </div>
               <AvatarMenu
                 isOpen={isAvatarMenuOpen}
@@ -187,9 +176,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-                  Entradas
-                </span>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Entradas</span>
                 <div className="h-8 w-8 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center">
                   <ArrowUpRight className="h-4 w-4 text-green-500" />
                 </div>
@@ -205,9 +192,7 @@ export default function Dashboard() {
 
             <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-                  Saídas
-                </span>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Saídas</span>
                 <div className="h-8 w-8 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center">
                   <ArrowDownRight className="h-4 w-4 text-red-500" />
                 </div>
@@ -225,9 +210,7 @@ export default function Dashboard() {
               <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/5 dark:bg-slate-900/5" />
               <div className="absolute -right-1 -bottom-6 h-28 w-28 rounded-full bg-white/5 dark:bg-slate-900/5" />
               <div className="flex items-center justify-between mb-6 relative z-10">
-                <span className="text-xs font-semibold text-white/50 dark:text-slate-400 uppercase tracking-widest">
-                  Saldo
-                </span>
+                <span className="text-xs font-semibold text-white/50 dark:text-slate-400 uppercase tracking-widest">Saldo</span>
                 <div className="h-8 w-8 rounded-xl bg-white/10 dark:bg-slate-900/10 flex items-center justify-center">
                   <Wallet className="h-4 w-4 text-white dark:text-slate-900" />
                 </div>
@@ -246,12 +229,8 @@ export default function Dashboard() {
             <div className="xl:col-span-3 bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-base font-black text-slate-900 dark:text-white">
-                    Visão Anual
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Receitas vs Despesas — 2026
-                  </p>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white">Visão Anual</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Receitas vs Despesas — {selectedYear}</p>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-slate-400">
                   <span className="flex items-center gap-1.5">
@@ -265,85 +244,30 @@ export default function Dashboard() {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={220}>
-                <AreaChart
-                  data={chartData}
-                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-                >
+                <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient
-                      id="gradReceitas"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#0f172a"
-                        stopOpacity={0.12}
-                      />
+                    <linearGradient id="gradReceitas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0f172a" stopOpacity={0.12} />
                       <stop offset="95%" stopColor="#0f172a" stopOpacity={0} />
                     </linearGradient>
-                    <linearGradient
-                      id="gradDespesas"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#94a3b8"
-                        stopOpacity={0.12}
-                      />
+                    <linearGradient id="gradDespesas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.12} />
                       <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#f1f5f9"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: "#94a3b8" }}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={(v) => `${v / 1000}k`}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
                   <Tooltip content={<CustomTooltip isPrivacyMode={isPrivacyMode} />} cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }} />
-                  <Area
-                    type="monotone"
-                    dataKey="receitas"
-                    stroke="#0f172a"
-                    strokeWidth={2.5}
-                    fill="url(#gradReceitas)"
-                    dot={false}
-                    activeDot={{ r: 4, fill: "#0f172a", strokeWidth: 0 }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="despesas"
-                    stroke="#cbd5e1"
-                    strokeWidth={2}
-                    fill="url(#gradDespesas)"
-                    dot={false}
-                    activeDot={{ r: 4, fill: "#cbd5e1", strokeWidth: 0 }}
-                  />
+                  <Area type="monotone" dataKey="receitas" stroke="#0f172a" strokeWidth={2.5} fill="url(#gradReceitas)" dot={false} activeDot={{ r: 4, fill: "#0f172a", strokeWidth: 0 }} />
+                  <Area type="monotone" dataKey="despesas" stroke="#cbd5e1" strokeWidth={2} fill="url(#gradDespesas)" dot={false} activeDot={{ r: 4, fill: "#cbd5e1", strokeWidth: 0 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
             <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-base font-black text-slate-900 dark:text-white">
-                  Últimas Transações
-                </h2>
+                <h2 className="text-base font-black text-slate-900 dark:text-white">Últimas Transações</h2>
                 <button
                   onClick={() => navigate("/transactions")}
                   className="text-xs font-semibold text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
@@ -355,10 +279,7 @@ export default function Dashboard() {
               <div className="flex flex-col gap-1 flex-1">
                 {isLoadingTransactions ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-slate-700/50"
-                    >
+                    <div key={i} className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-slate-700/50">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-2xl bg-slate-100 dark:bg-slate-700 animate-pulse" />
                         <div className="space-y-1.5">
@@ -370,40 +291,29 @@ export default function Dashboard() {
                     </div>
                   ))
                 ) : transactions.length === 0 ? (
-                  <p className="text-sm text-slate-400 text-center py-8">
-                    Nenhuma transação encontrada.
-                  </p>
+                  <div className="flex flex-col items-center justify-center flex-1 py-8 gap-2">
+                    <p className="text-sm text-slate-400 text-center">Nenhuma transação em</p>
+                    <p className="text-xs font-semibold text-slate-300 dark:text-slate-600">
+                      {new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(new Date(selectedYear, selectedMonth - 1))}
+                    </p>
+                  </div>
                 ) : (
                   transactions.slice(0, 5).map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0"
-                    >
+                    <div key={transaction.id} className="flex items-center justify-between py-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`h-9 w-9 rounded-2xl flex items-center justify-center ${transaction.type === TransactionType.Receita ? "bg-green-50 dark:bg-green-500/10" : "bg-red-50 dark:bg-red-500/10"}`}
-                        >
-                          {transaction.type === TransactionType.Receita ? (
-                            <ArrowUpRight className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <ArrowDownRight className="h-4 w-4 text-red-500" />
-                          )}
+                        <div className={`h-9 w-9 rounded-2xl flex items-center justify-center ${transaction.type === TransactionType.Receita ? "bg-green-50 dark:bg-green-500/10" : "bg-red-50 dark:bg-red-500/10"}`}>
+                          {transaction.type === TransactionType.Receita
+                            ? <ArrowUpRight className="h-4 w-4 text-green-500" />
+                            : <ArrowDownRight className="h-4 w-4 text-red-500" />
+                          }
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight">
-                            {transaction.description}
-                          </p>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {formatDate(transaction.date)}
-                          </p>
+                          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight">{transaction.description}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{formatDate(transaction.date)}</p>
                         </div>
                       </div>
-                      <p
-                        className={`text-sm font-black ${transaction.type === TransactionType.Receita ? "text-green-600" : "text-red-500"}`}
-                      >
-                        {maskValue(
-                          `${transaction.type === TransactionType.Receita ? "+" : "-"} ${formatCurrency(transaction.amount)}`,
-                        )}
+                      <p className={`text-sm font-black ${transaction.type === TransactionType.Receita ? "text-green-600" : "text-red-500"}`}>
+                        {maskValue(`${transaction.type === TransactionType.Receita ? "+" : "-"} ${formatCurrency(transaction.amount)}`)}
                       </p>
                     </div>
                   ))
@@ -414,5 +324,5 @@ export default function Dashboard() {
         </div>
       </main>
     </div>
-  );
+  )
 }
