@@ -54,7 +54,7 @@ export default function Register() {
 
   if (step === "success") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-8 bg-[#f0f2f5]">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-8 bg-app-bg">
         <div className="flex flex-col items-center gap-6 text-center max-w-sm">
           <img
             src={undrawDone}
@@ -89,7 +89,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#f0f2f5]">
+    <div className="min-h-screen flex bg-app-bg">
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-16 bg-slate-900">
         <div className="flex items-center gap-3">
           <img
@@ -115,7 +115,7 @@ export default function Register() {
               "Categorize e organize cada transação",
             ].map((item) => (
               <div key={item} className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 bg-white/10">
+                <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center mt-0.5 bg-white/10">
                   <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
                     <path
                       d="M2 6l3 3 5-5"

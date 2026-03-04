@@ -36,7 +36,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#f0f2f5]">
+    <div className="min-h-screen flex bg-app-bg">
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-16 bg-slate-900">
         <div className="flex items-center gap-3">
           <img

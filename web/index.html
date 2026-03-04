@@ -7,15 +7,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MyCash</title>
   <script>
-    (function () {
-      try {
-        var theme = localStorage.getItem("theme")
-        if (theme === "dark") {
-          document.documentElement.classList.add("dark")
-        }
-      } catch (_) { }
-    })()
-  </script>
+  (function () {
+    try {
+      var theme = localStorage.getItem("theme")
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark")
+        document.documentElement.style.backgroundColor = "#09090b"
+      } else {
+        document.documentElement.style.backgroundColor = "#f0f2f5"
+      }
+    } catch (_) {}
+  })()
+</script>
 </head>
 
 <body>

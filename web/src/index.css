@@ -6,29 +6,44 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Nossas cores customizadas premium */
+
+  /* Light */
+  --color-app-bg: #f0f2f5;
+  --color-app-card: #ffffff;
+  --color-app-elevated: #f8fafc;
+  --color-app-hover: #f1f5f9;
+  --color-app-border: #e2e8f0;
+  --color-app-border-subtle: #f1f5f9;
+  --color-app-text: #0f172a;
+  --color-app-muted: #64748b;
+  --color-app-faint: #94a3b8;
+  --color-app-accent: #0f172a;
+  --color-app-accent-fg: #ffffff;
+
+  /* Dark — Onyx (estilo Discord Onyx)
+     Discord padrão → bg: #1e1f22 | card: #2b2d31 | border: #3f4147
+     Slate escuro   → bg: #0f172a | card: #1e293b | border: #334155
+  */
+  --color-dark-bg: #09090b;
+  --color-dark-card: #111113;
+  --color-dark-elevated: #1c1c1f;
+  --color-dark-hover: #1c1c1f;
+  --color-dark-border: #27272a;
+  --color-dark-border-subtle: #27272a80;
+  --color-dark-text: #ffffff;
+  --color-dark-muted: #71717a;
+  --color-dark-faint: #52525b;
+  --color-dark-accent: #ffffff;
+  --color-dark-accent-fg: #09090b;
+
+  /* Legado — mantido para compatibilidade com Login/Register */
   --color-linen: #ECE7E2;
   --color-spruce: #4A7766;
   --color-spruce-dark: #375b4e;
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out;
-}
-
+/* ─── Shadcn UI — Light ───────────────────────────────────── */
 :root {
-  /* Variáveis base do Shadcn UI */
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
@@ -63,21 +78,43 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
-/* Aqui matamos o estilo problemático do Vite 
-  e forçamos o fundo ser do nosso estilo Linen 
-*/
-body,
-html,
-#root {
-  width: 100%;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  background-color: var(--color-linen);
+/* ─── Shadcn UI — Dark ────────────────────────────────────── */
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* ─── Shadcn inline mapping ───────────────────────────────── */
 @theme inline {
-  /* Mapeamento inline exigido pelo Tailwind v4 + Shadcn */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -118,37 +155,36 @@ html,
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-.dark {
-  /* Variáveis dark mode do Shadcn UI */
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+/* ─── Base ────────────────────────────────────────────────── */
+body,
+html,
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-app-bg);
+}
+
+.dark body,
+.dark html,
+.dark #root {
+  background-color: var(--color-dark-bg);
+}
+
+/* ─── Animações ───────────────────────────────────────────── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }

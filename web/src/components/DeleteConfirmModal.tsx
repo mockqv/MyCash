@@ -29,22 +29,22 @@ export default function DeleteConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="relative bg-white rounded-[32px] shadow-xl w-full max-w-sm mx-4 p-8 flex flex-col items-center text-center gap-6">
-        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+      <div className="relative bg-app-card dark:bg-dark-card border border-transparent dark:border-dark-border rounded-3xl shadow-xl w-full max-w-sm mx-4 p-8 flex flex-col items-center text-center gap-6">
+        <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center">
           <Trash2 size={24} className="text-red-500" />
         </div>
 
         <div>
-          <h2 className="text-lg font-bold mb-1" style={{ color: "#375b4e" }}>
+          <h2 className="text-lg font-black text-app-text dark:text-dark-text mb-1">
             Excluir transação
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-app-muted dark:text-dark-muted">
             Tem certeza que deseja excluir{" "}
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-app-text dark:text-dark-text">
               "{transaction.description}"
             </span>
             ? Essa ação não pode ser desfeita.
@@ -54,7 +54,7 @@ export default function DeleteConfirmModal({
         <div className="flex gap-3 w-full">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-2xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+            className="flex-1 py-3 rounded-2xl text-sm font-semibold bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted hover:bg-app-hover dark:hover:bg-dark-hover transition-colors cursor-pointer"
           >
             Cancelar
           </button>
