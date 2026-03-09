@@ -26,6 +26,22 @@ var supabaseUrl = builder.Configuration["Supabase:Url"]?.TrimEnd('/')
 
 var signingKeys = await FetchSupabaseSigningKeysAsync($"{supabaseUrl}/auth/v1/.well-known/jwks.json");
 
+// ── CORS ──────────────────────────────────────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:4173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 // ── Authentication ────────────────────────────────────────────────────────────
 builder.Services.AddAuthentication(options =>
 {
@@ -36,7 +52,6 @@ builder.Services.AddAuthentication(options =>
 {
     options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
 
-    // 1. Forçamos o validador clássico (o único que entende a assinatura ES256 do Supabase)
     options.TokenHandlers.Clear();
     options.TokenHandlers.Add(new JwtSecurityTokenHandler
     {
@@ -104,6 +119,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

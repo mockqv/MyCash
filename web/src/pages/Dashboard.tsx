@@ -1,12 +1,4 @@
-import { useState, useEffect } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState, useRef, useMemo } from "react";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -17,81 +9,180 @@ import {
   LogOut,
   EyeOff,
   Eye,
-  Calendar,
+  UserRound,
 } from "lucide-react";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  useTransactions,
+  useTransactionSummary,
+} from "../hooks/useTransactions";
+import { formatCurrency, formatDate } from "../utils/formatters";
+import { TransactionType } from "../types/transaction";
+import AvatarMenu from "../components/AvatarMenu";
+import MonthYearPicker from "../components/MonthYearPicker"
+import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 
-export function Dashboard() {
+function CustomTooltip({ active, payload, label, isPrivacyMode }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-app-card dark:bg-dark-card border border-app-border dark:border-dark-border rounded-2xl shadow-lg px-4 py-3 text-xs">
+      <p className="font-bold text-app-text dark:text-dark-text mb-2">
+        {label}
+      </p>
+      <p className="text-green-600 font-semibold">
+        Receitas: {isPrivacyMode ? "••••" : formatCurrency(payload[0]?.value)}
+      </p>
+      <p className="text-red-500 font-semibold">
+        Despesas: {isPrivacyMode ? "••••" : formatCurrency(payload[1]?.value)}
+      </p>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  usePageTitle("Painel de Controle");
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [isPrivacyMode, setIsPrivacyMode] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  const { data: transactionsData, isLoading: isLoadingTransactions } =
+    useTransactions({
+      page: 1,
+      pageSize: 10,
+      month: selectedMonth,
+      year: selectedYear,
+    });
+  const { data: allTransactionsData } = useTransactions({
+    page: 1,
+    pageSize: 100,
+    year: selectedYear,
+  });
+  const { data: summary, isLoading: isLoadingSummary } = useTransactionSummary(
+    selectedMonth,
+    selectedYear,
+  );
 
+  const transactions = transactionsData?.items ?? [];
+  const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0);
   const maskValue = (value: string) => (isPrivacyMode ? "••••" : value);
 
+  const chartData = useMemo(() => {
+    const months = [
+      "Jan",
+      "Fev",
+      "Mar",
+      "Abr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Set",
+      "Out",
+      "Nov",
+      "Dez",
+    ];
+    const grouped = months.map((month) => ({
+      month,
+      receitas: 0,
+      despesas: 0,
+    }));
+    allTransactionsData?.items?.forEach((t) => {
+      const monthIndex = new Date(t.date).getMonth();
+      if (t.type === TransactionType.Receita)
+        grouped[monthIndex].receitas += t.amount;
+      else grouped[monthIndex].despesas += t.amount;
+    });
+    return grouped;
+  }, [allTransactionsData]);
+
+  const sidebarNav = (
+    <aside className="w-64 bg-app-card dark:bg-dark-card border-r border-app-border dark:border-dark-border hidden xl:flex flex-col">
+      <div className="p-8 flex items-center gap-3">
+        <img
+          src="/Icon.png"
+          alt="MyCash"
+          className="h-10 w-10 object-contain cursor-pointer shrink-0"
+        />
+        <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight cursor-default">
+          MyCash
+        </h2>
+      </div>
+
+      <nav className="flex-1 px-4 space-y-1 mt-2">
+        <button className="w-full flex items-center gap-3 px-4 py-3 bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg rounded-2xl font-semibold transition-all cursor-pointer text-sm">
+          <LayoutGrid className="h-4 w-4" />
+          Visão Geral
+        </button>
+        <button
+          onClick={() => navigate("/transactions")}
+          className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
+        >
+          <Receipt className="h-4 w-4" />
+          Transações
+        </button>
+      </nav>
+
+      <div className="p-4 space-y-1 mb-2 mx-2">
+        <button
+          onClick={() => navigate("/settings")}
+          className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
+        >
+          <Settings className="h-4 w-4" />
+          Ajustes
+        </button>
+        <button
+          onClick={signOut}
+          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-2xl font-medium transition-all cursor-pointer text-sm"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </button>
+      </div>
+    </aside>
+  );
+
   return (
-    <div className="flex min-h-screen w-full bg-linen text-slate-900 font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200/60 hidden xl:flex flex-col">
-        <div className="p-8 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-spruce flex items-center justify-center shadow-sm cursor-pointer hover:bg-spruce-dark transition-colors">
-            <span className="text-white font-bold text-xl">M</span>
-          </div>
-          <h2 className="text-2xl font-bold text-spruce-dark tracking-tight cursor-default">
-            MyCash
-          </h2>
-        </div>
+    <div className="flex min-h-screen w-full bg-app-bg dark:bg-dark-bg font-sans">
+      {sidebarNav}
 
-        <nav className="flex-1 px-4 space-y-2 mt-2">
-          <button className="w-full flex items-center gap-3 px-4 py-3 bg-spruce/10 text-spruce rounded-2xl font-semibold transition-colors cursor-pointer">
-            <LayoutGrid className="h-5 w-5" />
-            Visão Geral
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-spruce-dark hover:bg-slate-50 rounded-2xl font-medium transition-colors cursor-pointer">
-            <Receipt className="h-5 w-5" />
-            Transações
-          </button>
-        </nav>
-
-        <div className="p-4 pt-0 space-y-1 mb-2 border-t border-slate-100 mx-4 mt-4">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-spruce-dark hover:bg-slate-50 rounded-2xl font-medium transition-colors cursor-pointer mt-2">
-            <Settings className="h-5 w-5" />
-            Ajustes
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-red-500/80 hover:text-red-600 hover:bg-red-50 rounded-2xl font-medium transition-colors cursor-pointer">
-            <LogOut className="h-5 w-5" />
-            Sair
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
-        {/* Header */}
-        <header className="h-24 px-8 lg:px-12 flex items-center justify-between shrink-0">
+      <main className="flex-1 flex flex-col overflow-y-auto">
+        <header className="px-8 lg:px-10 pt-8 pb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-spruce-dark">
+            <h1 className="text-2xl font-black text-app-text dark:text-dark-text">
               Painel de Controle
             </h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              Acompanhe suas finanças deste mês.
+            <p className="text-sm text-app-muted dark:text-dark-muted mt-0.5">
+              Olá, {user?.name?.split(" ")[0] ?? "usuário"}. Aqui está o resumo
+              do seu mês.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="hidden md:flex items-center gap-2 h-10 px-4 bg-white rounded-full text-sm font-medium text-slate-600 border border-slate-200 hover:border-spruce/30 transition-colors shadow-sm mr-2 cursor-pointer">
-              <Calendar className="h-4 w-4 text-spruce" />
-              01 Mar - 31 Mar, 2026
-            </button>
+            <MonthYearPicker
+              month={selectedMonth}
+              year={selectedYear}
+              onChange={(m: number, y: number) => { setSelectedMonth(m); setSelectedYear(y) }}
+            />
 
             <button
               onClick={() => setIsPrivacyMode(!isPrivacyMode)}
-              className={`h-10 w-10 rounded-full flex items-center justify-center border shadow-sm transition-colors cursor-pointer ${isPrivacyMode ? "bg-spruce/10 border-spruce text-spruce" : "bg-white border-slate-200 text-slate-400 hover:text-spruce"}`}
-              title={isPrivacyMode ? "Mostrar valores" : "Ocultar valores"}
+              className="h-10 w-10 rounded-2xl flex items-center justify-center bg-app-card dark:bg-dark-card border border-app-border dark:border-dark-border shadow-sm transition-colors cursor-pointer text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text"
             >
               {isPrivacyMode ? (
                 <EyeOff className="h-4 w-4" />
@@ -100,185 +191,261 @@ export function Dashboard() {
               )}
             </button>
 
-            <div
-              className="h-10 w-10 rounded-full bg-spruce text-white flex items-center justify-center font-bold border-2 border-white shadow-sm cursor-pointer ml-1 hover:bg-spruce-dark transition-colors"
-              title="Menu do Perfil"
-            >
-              US
+            <div className="relative">
+              <div
+                ref={avatarRef}
+                onClick={() => setIsAvatarMenuOpen((prev) => !prev)}
+                className="h-10 w-10 rounded-2xl bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                title={user?.name ?? ""}
+              >
+                <UserRound size={18} />
+              </div>
+              <AvatarMenu
+                isOpen={isAvatarMenuOpen}
+                onClose={() => setIsAvatarMenuOpen(false)}
+                anchorRef={avatarRef}
+              />
             </div>
           </div>
         </header>
 
-        {/* Área de Conteúdo Central */}
-        <div className="p-8 lg:p-12 pt-0 w-full max-w-[1400px] mx-auto">
-          {/* 3 KPIs Principais */}
-          <div className="grid gap-6 sm:grid-cols-3 mb-8">
-            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between h-40">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-slate-500">
+        <div className="px-8 lg:px-10 pb-10 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
                   Entradas
                 </span>
-                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <ArrowUpRight className="h-4 w-4 text-green-600" />
+                <div className="h-8 w-8 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center">
+                  <ArrowUpRight className="h-4 w-4 text-green-500" />
                 </div>
               </div>
-              <div>
-                {isLoading ? (
-                  <div className="h-9 w-32 bg-slate-200/70 animate-pulse rounded-md"></div>
-                ) : (
-                  <h3 className="text-3xl font-bold text-slate-900">
-                    {maskValue("R$ 4.500,00")}
-                  </h3>
-                )}
-              </div>
+              {isLoadingSummary ? (
+                <div className="h-8 w-36 bg-app-elevated dark:bg-dark-elevated animate-pulse rounded-xl" />
+              ) : (
+                <p className="text-2xl font-black text-app-text dark:text-dark-text">
+                  {maskValue(formatCurrency(summary?.totalIncome ?? 0))}
+                </p>
+              )}
             </div>
 
-            <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 flex flex-col justify-between h-40">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-semibold text-slate-500">
+            <div className="bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
                   Saídas
                 </span>
-                <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-                  <ArrowDownRight className="h-4 w-4 text-red-600" />
+                <div className="h-8 w-8 rounded-xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center">
+                  <ArrowDownRight className="h-4 w-4 text-red-500" />
                 </div>
               </div>
-              <div>
-                {isLoading ? (
-                  <div className="h-9 w-32 bg-slate-200/70 animate-pulse rounded-md"></div>
-                ) : (
-                  <h3 className="text-3xl font-bold text-slate-900">
-                    {maskValue("R$ 2.150,00")}
-                  </h3>
-                )}
-              </div>
+              {isLoadingSummary ? (
+                <div className="h-8 w-36 bg-app-elevated dark:bg-dark-elevated animate-pulse rounded-xl" />
+              ) : (
+                <p className="text-2xl font-black text-app-text dark:text-dark-text">
+                  {maskValue(formatCurrency(summary?.totalExpense ?? 0))}
+                </p>
+              )}
             </div>
 
-            <div className="bg-spruce rounded-[24px] p-6 shadow-md flex flex-col justify-between text-white relative overflow-hidden h-40">
-              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-xl"></div>
-              <div className="flex items-center justify-between mb-4 relative z-10">
-                <span className="text-sm font-semibold text-linen/90">
-                  Saldo Atual
+            <div className="bg-app-accent dark:bg-dark-accent rounded-3xl p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/5" />
+              <div className="absolute -right-1 -bottom-6 h-28 w-28 rounded-full bg-white/5" />
+              <div className="flex items-center justify-between mb-6 relative z-10">
+                <span className="text-xs font-semibold text-app-accent-fg/50 dark:text-dark-accent-fg/50 uppercase tracking-widest">
+                  Saldo
                 </span>
-                <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                  <Wallet className="h-4 w-4 text-white" />
+                <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center">
+                  <Wallet className="h-4 w-4 text-app-accent-fg dark:text-dark-accent-fg" />
                 </div>
               </div>
-              <div className="relative z-10">
-                {isLoading ? (
-                  <div className="h-9 w-32 bg-white/20 animate-pulse rounded-md"></div>
-                ) : (
-                  <h3 className="text-3xl font-bold">
-                    {maskValue("R$ 2.350,00")}
-                  </h3>
-                )}
-              </div>
+              {isLoadingSummary ? (
+                <div className="h-8 w-36 bg-white/10 animate-pulse rounded-xl" />
+              ) : (
+                <p className="text-2xl font-black text-app-accent-fg dark:text-dark-accent-fg relative z-10">
+                  {maskValue(formatCurrency(balance))}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Tabela de Transações */}
-          <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden min-h-[300px]">
-            <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100">
-              <h2 className="text-xl font-bold text-spruce-dark">
-                Últimas Transações
-              </h2>
-              <button className="text-sm font-semibold text-spruce hover:text-spruce-dark transition-colors px-4 py-2 bg-spruce/5 rounded-xl cursor-pointer">
-                Ver todas
-              </button>
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+            <div className="xl:col-span-3 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-base font-black text-app-text dark:text-dark-text">
+                    Visão Anual
+                  </h2>
+                  <p className="text-xs text-app-muted dark:text-dark-muted mt-0.5">
+                    Receitas vs Despesas — {selectedYear}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-app-muted dark:text-dark-muted">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-app-accent dark:bg-dark-accent inline-block" />
+                    Receitas
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-app-faint dark:bg-dark-faint inline-block" />
+                    Despesas
+                  </span>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="gradReceitas"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#0f172a"
+                        stopOpacity={0.12}
+                      />
+                      <stop offset="95%" stopColor="#0f172a" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient
+                      id="gradDespesas"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#94a3b8"
+                        stopOpacity={0.12}
+                      />
+                      <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#27272a"
+                    vertical={false}
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 11, fill: "#71717a" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#71717a" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `${v / 1000}k`}
+                  />
+                  <Tooltip
+                    content={<CustomTooltip isPrivacyMode={isPrivacyMode} />}
+                    cursor={{ stroke: "#27272a", strokeWidth: 1 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="receitas"
+                    stroke="#ffffff"
+                    strokeWidth={2.5}
+                    fill="url(#gradReceitas)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: "#ffffff", strokeWidth: 0 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="despesas"
+                    stroke="#52525b"
+                    strokeWidth={2}
+                    fill="url(#gradDespesas)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: "#52525b", strokeWidth: 0 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
 
-            <div className="p-2">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-none hover:bg-transparent cursor-default">
-                    <TableHead className="font-semibold text-slate-400 h-10 px-4">
-                      Descrição
-                    </TableHead>
-                    <TableHead className="font-semibold text-slate-400 h-10 px-4">
-                      Categoria
-                    </TableHead>
-                    <TableHead className="font-semibold text-slate-400 h-10 px-4">
-                      Data
-                    </TableHead>
-                    <TableHead className="text-right font-semibold text-slate-400 h-10 px-4">
-                      Valor
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    Array.from({ length: 4 }).map((_, index) => (
-                      <TableRow
-                        key={index}
-                        className="border-b border-slate-50 cursor-default"
+            <div className="xl:col-span-2 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-base font-black text-app-text dark:text-dark-text">
+                  Últimas Transações
+                </h2>
+                <button
+                  onClick={() => navigate("/transactions")}
+                  className="text-xs font-semibold text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text transition-colors cursor-pointer"
+                >
+                  Ver todas
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-1">
+                {isLoadingTransactions ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between py-3 border-b border-app-border-subtle dark:border-dark-border-subtle"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-2xl bg-app-elevated dark:bg-dark-elevated animate-pulse" />
+                        <div className="space-y-1.5">
+                          <div className="h-3 w-24 bg-app-elevated dark:bg-dark-elevated animate-pulse rounded-lg" />
+                          <div className="h-2.5 w-16 bg-app-elevated dark:bg-dark-elevated animate-pulse rounded-lg" />
+                        </div>
+                      </div>
+                      <div className="h-3 w-16 bg-app-elevated dark:bg-dark-elevated animate-pulse rounded-lg" />
+                    </div>
+                  ))
+                ) : transactions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center flex-1 py-8 gap-2">
+                    <p className="text-sm text-app-muted dark:text-dark-muted text-center">
+                      Nenhuma transação em
+                    </p>
+                    <p className="text-xs font-semibold text-app-faint dark:text-dark-faint">
+                      {new Intl.DateTimeFormat("pt-BR", {
+                        month: "long",
+                        year: "numeric",
+                      }).format(new Date(selectedYear, selectedMonth - 1))}
+                    </p>
+                  </div>
+                ) : (
+                  transactions.slice(0, 5).map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between py-3 border-b border-app-border-subtle dark:border-dark-border-subtle last:border-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-9 w-9 rounded-2xl flex items-center justify-center ${transaction.type === TransactionType.Receita ? "bg-green-50 dark:bg-green-500/10" : "bg-red-50 dark:bg-red-500/10"}`}
+                        >
+                          {transaction.type === TransactionType.Receita ? (
+                            <ArrowUpRight className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-app-text dark:text-dark-text leading-tight">
+                            {transaction.description}
+                          </p>
+                          <p className="text-xs text-app-muted dark:text-dark-muted mt-0.5">
+                            {formatDate(transaction.date)}
+                          </p>
+                        </div>
+                      </div>
+                      <p
+                        className={`text-sm font-black ${transaction.type === TransactionType.Receita ? "text-green-600" : "text-red-500"}`}
                       >
-                        <TableCell className="px-4 py-5">
-                          <div className="h-4 w-3/4 bg-slate-200/70 animate-pulse rounded"></div>
-                        </TableCell>
-                        <TableCell className="px-4 py-5">
-                          <div className="h-6 w-20 bg-slate-200/70 animate-pulse rounded-full"></div>
-                        </TableCell>
-                        <TableCell className="px-4 py-5">
-                          <div className="h-4 w-24 bg-slate-200/70 animate-pulse rounded"></div>
-                        </TableCell>
-                        <TableCell className="px-4 py-5 flex justify-end">
-                          <div className="h-4 w-24 bg-slate-200/70 animate-pulse rounded"></div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <>
-                      <TableRow className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <TableCell className="font-bold text-slate-700 px-4 py-4">
-                          Salário Desenvolvedor
-                        </TableCell>
-                        <TableCell className="px-4 py-4">
-                          <span className="px-3 py-1.5 rounded-full bg-green-100 text-[11px] font-bold text-green-700 uppercase tracking-wider">
-                            Renda
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-slate-500 font-medium px-4 py-4">
-                          02 Mar 2026
-                        </TableCell>
-                        <TableCell className="text-right text-green-600 font-bold text-base px-4 py-4">
-                          {maskValue("+ R$ 4.500,00")}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <TableCell className="font-bold text-slate-700 px-4 py-4">
-                          Ifood - Hambúrguer
-                        </TableCell>
-                        <TableCell className="px-4 py-4">
-                          <span className="px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                            Alimentação
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-slate-500 font-medium px-4 py-4">
-                          01 Mar 2026
-                        </TableCell>
-                        <TableCell className="text-right text-red-600 font-bold text-base px-4 py-4">
-                          {maskValue("- R$ 65,90")}
-                        </TableCell>
-                      </TableRow>
-                      <TableRow className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <TableCell className="font-bold text-slate-700 px-4 py-4">
-                          Assinatura Netflix
-                        </TableCell>
-                        <TableCell className="px-4 py-4">
-                          <span className="px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                            Entretenimento
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-slate-500 font-medium px-4 py-4">
-                          01 Mar 2026
-                        </TableCell>
-                        <TableCell className="text-right text-red-600 font-bold text-base px-4 py-4">
-                          {maskValue("- R$ 59,90")}
-                        </TableCell>
-                      </TableRow>
-                    </>
-                  )}
-                </TableBody>
-              </Table>
+                        {maskValue(
+                          `${transaction.type === TransactionType.Receita ? "+" : "-"} ${formatCurrency(transaction.amount)}`,
+                        )}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
