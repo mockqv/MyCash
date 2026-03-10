@@ -10,32 +10,27 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ScheduledConfirmModal from "./components/ScheduledConfirmModal";
-import { useScheduledDueToday } from "./hooks/useScheduledTransactions";
+import { useScheduledPending } from "./hooks/useScheduledTransactions";
 
 const queryClient = new QueryClient();
 
-function DueTodayChecker() {
+function PendingChecker() {
   const { user } = useAuth();
-  const { data: dueToday = [] } = useScheduledDueToday();
+  const { data: pending = [] } = useScheduledPending();
   const [dismissed, setDismissed] = useState(false);
 
-  const todayKey = new Date().toISOString().split("T")[0];
-  const storageKey = `scheduled-dismissed-${todayKey}`;
-
   useEffect(() => {
-    if (sessionStorage.getItem(storageKey)) {
-      setDismissed(true);
-    }
-  }, [storageKey]);
+    if (pending.length > 0) setDismissed(false);
+  }, [pending.length]);
 
-  function handleDismiss() {
-    sessionStorage.setItem(storageKey, "true");
-    setDismissed(true);
-  }
+  if (!user || dismissed || pending.length === 0) return null;
 
-  if (!user || dismissed || dueToday.length === 0) return null;
-
-  return <ScheduledConfirmModal items={dueToday} onDismiss={handleDismiss} />;
+  return (
+    <ScheduledConfirmModal
+      items={pending}
+      onDismiss={() => setDismissed(true)}
+    />
+  );
 }
 
 export default function App() {
@@ -44,7 +39,7 @@ export default function App() {
       <ThemeProvider>
         <BrowserRouter>
           <AuthProvider>
-            <DueTodayChecker />
+            <PendingChecker />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />

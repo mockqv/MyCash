@@ -6,32 +6,35 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import { useConfirmScheduled } from "../hooks/useScheduledMutations";
+import {
+  useConfirmOccurrence,
+  useSkipOccurrence,
+} from "../hooks/useScheduledMutations";
 import { formatCurrency } from "../utils/formatters";
 import { categoryLabels } from "../utils/transaction";
-import type { ScheduledTransaction } from "../types/scheduled";
+import type { ScheduledOccurrence } from "../types/scheduled";
 import { TransactionType } from "../types/transaction";
 
 type Props = {
-  items: ScheduledTransaction[];
+  items: ScheduledOccurrence[];
   onDismiss: () => void;
 };
 
 export default function ScheduledConfirmModal({ items, onDismiss }: Props) {
   const [index, setIndex] = useState(0);
-  const [done, setDone] = useState<string[]>([]);
   const { mutateAsync: confirm, isPending: isConfirming } =
-    useConfirmScheduled();
+    useConfirmOccurrence();
+  const { mutateAsync: skip, isPending: isSkipping } = useSkipOccurrence();
 
   const current = items[index];
 
   async function handleConfirm() {
     await confirm(current.id);
-    setDone((prev) => [...prev, current.id]);
     advance();
   }
 
-  function handleSkip() {
+  async function handleSkip() {
+    await skip(current.id);
     advance();
   }
 
@@ -50,6 +53,7 @@ export default function ScheduledConfirmModal({ items, onDismiss }: Props) {
   if (!current) return null;
 
   const isReceita = current.type === TransactionType.Receita;
+  const isPending = isConfirming || isSkipping;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -107,7 +111,7 @@ export default function ScheduledConfirmModal({ items, onDismiss }: Props) {
         <div className="flex flex-col gap-2 w-full">
           <button
             onClick={handleConfirm}
-            disabled={isConfirming}
+            disabled={isPending}
             className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity cursor-pointer disabled:opacity-50 bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg hover:opacity-80"
           >
             {isConfirming ? (
@@ -120,15 +124,21 @@ export default function ScheduledConfirmModal({ items, onDismiss }: Props) {
 
           <button
             onClick={handleSkip}
-            className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer bg-red-500/10 text-red-500 hover:bg-red-500/20"
+            disabled={isPending}
+            className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 bg-red-500/10 text-red-500 hover:bg-red-500/20"
           >
-            <XCircle size={15} />
+            {isSkipping ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <XCircle size={15} />
+            )}
             Não aconteceu
           </button>
 
           <button
             onClick={handleLater}
-            className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted hover:bg-app-hover dark:hover:bg-dark-hover"
+            disabled={isPending}
+            className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted hover:bg-app-hover dark:hover:bg-dark-hover"
           >
             <Clock size={15} />
             Lembrar depois

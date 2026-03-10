@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../lib/api"
-import type { ScheduledTransaction } from "../types/scheduled"
+import type { ScheduledTransaction, ScheduledOccurrence } from "../types/scheduled"
 
 export function useScheduledTransactions() {
     return useQuery<ScheduledTransaction[]>({
@@ -12,11 +12,11 @@ export function useScheduledTransactions() {
     })
 }
 
-export function useScheduledDueToday() {
-    return useQuery<ScheduledTransaction[]>({
-        queryKey: ["scheduled", "due-today"],
+export function useScheduledPending() {
+    return useQuery<ScheduledOccurrence[]>({
+        queryKey: ["scheduled", "pending"],
         queryFn: async () => {
-            const { data } = await api.get("/api/ScheduledTransactions/due-today")
+            const { data } = await api.get("/api/ScheduledOccurrences/pending")
             return data
         },
     })

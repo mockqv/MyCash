@@ -1,11 +1,12 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MyCash.API.Data;
 using MyCash.API.Handlers;
+using MyCash.API.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,6 +111,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ── Pipeline ──────────────────────────────────────────────────────────────────
+builder.Services.AddSingleton<OccurrenceGeneratorService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<OccurrenceGeneratorService>());
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

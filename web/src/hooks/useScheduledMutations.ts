@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "../lib/api"
-import type { ScheduledTransaction } from "../types/scheduled"
-import type { RecurrenceType } from "../types/scheduled"
+import type { ScheduledTransaction, RecurrenceType } from "../types/scheduled"
 
 type ScheduledPayload = {
     description: string
@@ -50,16 +49,28 @@ export function useDeleteScheduled() {
     })
 }
 
-export function useConfirmScheduled() {
+export function useConfirmOccurrence() {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: async (id: string) => {
-            const { data } = await api.post(`/api/ScheduledTransactions/${id}/confirm`)
+        mutationFn: async (occurrenceId: string) => {
+            const { data } = await api.post(`/api/ScheduledOccurrences/${occurrenceId}/confirm`)
             return data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["transactions"] })
-            queryClient.invalidateQueries({ queryKey: ["scheduled"] })
+            queryClient.invalidateQueries({ queryKey: ["scheduled", "pending"] })
+        },
+    })
+}
+
+export function useSkipOccurrence() {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: async (occurrenceId: string) => {
+            await api.post(`/api/ScheduledOccurrences/${occurrenceId}/skip`)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["scheduled", "pending"] })
         },
     })
 }

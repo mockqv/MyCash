@@ -18,19 +18,23 @@ import {
 import { useTransactions } from "../hooks/useTransactions";
 import {
   useScheduledTransactions,
-  useScheduledDueToday,
+  useScheduledPending,
 } from "../hooks/useScheduledTransactions";
 import {
   useDeleteScheduled,
   useUpdateScheduled,
-  useConfirmScheduled,
+  useConfirmOccurrence,
+  useSkipOccurrence,
 } from "../hooks/useScheduledMutations";
 import { formatCurrency, formatDate } from "../utils/formatters";
 import { categoryLabels, categoryStyles } from "../utils/transaction";
 import { TransactionType } from "../types/transaction";
 import { RecurrenceType } from "../types/scheduled";
 import type { Transaction } from "../types/transaction";
-import type { ScheduledTransaction } from "../types/scheduled";
+import type {
+  ScheduledTransaction,
+  ScheduledOccurrence,
+} from "../types/scheduled";
 import TransactionModal from "../components/TransactionModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import ScheduledModal from "../components/ScheduledModal";
@@ -70,16 +74,16 @@ export default function Transactions() {
   });
   const { data: scheduled = [], isLoading: isLoadingScheduled } =
     useScheduledTransactions();
-  const { data: dueToday = [] } = useScheduledDueToday();
+  const { data: pending = [] } = useScheduledPending();
   const { mutateAsync: deleteScheduled } = useDeleteScheduled();
   const { mutateAsync: updateScheduled } = useUpdateScheduled();
-  const { mutateAsync: confirmScheduled } = useConfirmScheduled();
+  const { mutateAsync: confirmOccurrence } = useConfirmOccurrence();
+  const { mutateAsync: skipOccurrence } = useSkipOccurrence();
 
   const transactions = transactionsData?.items ?? [];
   const totalPages = transactionsData?.totalPages ?? 1;
   const { toasts, addToast } = useToast();
-
-  const pendingCount = dueToday.length;
+  const pendingCount = pending.length;
 
   function handleEdit(t: Transaction) {
     setSelectedTransaction(t);
@@ -130,35 +134,25 @@ export default function Transactions() {
     addToast("Agendado removido.");
   }
 
-  async function handleConfirmDue(id: string) {
-    setConfirmingId(id);
+  async function handleConfirmDue(occurrenceId: string) {
+    setConfirmingId(occurrenceId);
     try {
-      await confirmScheduled(id);
+      await confirmOccurrence(occurrenceId);
       addToast("Transação confirmada e lançada.");
     } finally {
       setConfirmingId(null);
     }
   }
 
-  async function handleSkipDue(id: string) {
-  setSkippingId(id)
-  try {
-    const item = dueToday.find((d) => d.id === id)!
-    await updateScheduled({
-      id: item.id,
-      description: item.description,
-      amount: item.amount,
-      type: item.type,
-      category: item.category,
-      recurrence: item.recurrence,
-      dayOfMonth: item.dayOfMonth,
-      isActive: item.isActive,
-    })
-    addToast("Agendado ignorado por hoje.")
-  } finally {
-    setSkippingId(null)
+  async function handleSkipDue(occurrenceId: string) {
+    setSkippingId(occurrenceId);
+    try {
+      await skipOccurrence(occurrenceId);
+      addToast("Agendado ignorado.");
+    } finally {
+      setSkippingId(null);
+    }
   }
-}
 
   return (
     <>
@@ -191,7 +185,6 @@ export default function Transactions() {
         }
       >
         <div className="flex flex-col gap-4">
-          {/* Tabs */}
           <div className="flex gap-1 p-1 bg-app-card dark:bg-dark-card border border-app-border dark:border-dark-border rounded-2xl w-fit">
             <button
               onClick={() => setActiveTab("transactions")}
@@ -222,7 +215,6 @@ export default function Transactions() {
             </button>
           </div>
 
-          {/* Aba Transações */}
           {activeTab === "transactions" && (
             <div className="bg-app-card dark:bg-dark-card rounded-3xl border border-app-border dark:border-dark-border shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
@@ -378,21 +370,19 @@ export default function Transactions() {
             </div>
           )}
 
-          {/* Aba Agendados */}
           {activeTab === "scheduled" && (
             <div className="flex flex-col gap-4">
-              {/* Banner de pendentes do dia */}
-              {dueToday.length > 0 && (
+              {pending.length > 0 && (
                 <div className="bg-app-card dark:bg-dark-card rounded-3xl border border-amber-500/30 shadow-sm overflow-hidden">
                   <div className="px-6 py-4 border-b border-amber-500/20 flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                     <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-widest">
-                      Pendentes de hoje — {dueToday.length}{" "}
-                      {dueToday.length === 1 ? "item" : "itens"}
+                      Pendentes — {pending.length}{" "}
+                      {pending.length === 1 ? "item" : "itens"}
                     </p>
                   </div>
                   <div className="divide-y divide-app-border-subtle dark:divide-dark-border-subtle">
-                    {dueToday.map((item) => {
+                    {pending.map((item: ScheduledOccurrence) => {
                       const isReceita = item.type === TransactionType.Receita;
                       const isConfirming = confirmingId === item.id;
                       const isSkipping = skippingId === item.id;
@@ -457,7 +447,6 @@ export default function Transactions() {
                 </div>
               )}
 
-              {/* Tabela de agendados */}
               <div className="bg-app-card dark:bg-dark-card rounded-3xl border border-app-border dark:border-dark-border shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
