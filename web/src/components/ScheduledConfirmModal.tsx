@@ -31,22 +31,11 @@ export default function ScheduledConfirmModal({ items, onDismiss }: Props) {
     advance();
   }
 
-  function handleNo() {
+  function handleSkip() {
     advance();
   }
 
   function handleLater() {
-    const pending = items.filter(
-      (i) => !done.includes(i.id) && i.id !== current.id,
-    );
-    if (pending.length === 0) {
-      onDismiss();
-      return;
-    }
-    sessionStorage.setItem(
-      "scheduled-pending",
-      JSON.stringify(pending.map((i) => i.id)),
-    );
     onDismiss();
   }
 
@@ -130,7 +119,7 @@ export default function ScheduledConfirmModal({ items, onDismiss }: Props) {
           </button>
 
           <button
-            onClick={handleNo}
+            onClick={handleSkip}
             className="w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer bg-red-500/10 text-red-500 hover:bg-red-500/20"
           >
             <XCircle size={15} />

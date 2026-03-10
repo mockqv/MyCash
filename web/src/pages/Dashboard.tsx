@@ -29,6 +29,7 @@ import { TransactionType, TransactionCategory } from "../types/transaction";
 import { categoryLabels, categoryColors } from "../utils/transaction";
 import MonthYearPicker from "../components/MonthYearPicker";
 import PageLayout from "../components/PageLayout";
+import { useTheme } from "../contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
 
@@ -52,6 +53,7 @@ function CustomTooltip({ active, payload, label, isPrivacyMode }: any) {
 export default function Dashboard() {
   usePageTitle("Painel de Controle");
   const { user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const now = new Date();
@@ -79,6 +81,9 @@ export default function Dashboard() {
   const transactions = transactionsData?.items ?? [];
   const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0);
   const maskValue = (value: string) => (isPrivacyMode ? "••••" : value);
+
+  const receitaColor = theme === "dark" ? "#ffffff" : "#0f172a";
+  const despesaColor = theme === "dark" ? "#52525b" : "#94a3b8";
 
   const chartData = useMemo(() => {
     const months = [
@@ -160,6 +165,26 @@ export default function Dashboard() {
     >
       <div className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-app-accent dark:bg-dark-accent rounded-3xl p-6 shadow-sm relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/5" />
+            <div className="absolute -right-1 -bottom-6 h-28 w-28 rounded-full bg-white/5" />
+            <div className="flex items-center justify-between mb-6 relative z-10">
+              <span className="text-xs font-semibold text-app-accent-fg/50 dark:text-dark-accent-fg/50 uppercase tracking-widest">
+                Saldo
+              </span>
+              <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center">
+                <Wallet className="h-4 w-4 text-app-accent-fg dark:text-dark-accent-fg" />
+              </div>
+            </div>
+            {isLoadingSummary ? (
+              <div className="h-8 w-36 bg-white/10 animate-pulse rounded-xl" />
+            ) : (
+              <p className="text-2xl font-black text-app-accent-fg dark:text-dark-accent-fg relative z-10">
+                {maskValue(formatCurrency(balance))}
+              </p>
+            )}
+          </div>
+
           <div className="bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <span className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
@@ -195,26 +220,6 @@ export default function Dashboard() {
               </p>
             )}
           </div>
-
-          <div className="bg-app-accent dark:bg-dark-accent rounded-3xl p-6 shadow-sm relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/5" />
-            <div className="absolute -right-1 -bottom-6 h-28 w-28 rounded-full bg-white/5" />
-            <div className="flex items-center justify-between mb-6 relative z-10">
-              <span className="text-xs font-semibold text-app-accent-fg/50 dark:text-dark-accent-fg/50 uppercase tracking-widest">
-                Saldo
-              </span>
-              <div className="h-8 w-8 rounded-xl bg-white/10 flex items-center justify-center">
-                <Wallet className="h-4 w-4 text-app-accent-fg dark:text-dark-accent-fg" />
-              </div>
-            </div>
-            {isLoadingSummary ? (
-              <div className="h-8 w-36 bg-white/10 animate-pulse rounded-xl" />
-            ) : (
-              <p className="text-2xl font-black text-app-accent-fg dark:text-dark-accent-fg relative z-10">
-                {maskValue(formatCurrency(balance))}
-              </p>
-            )}
-          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-8 gap-4">
@@ -246,12 +251,28 @@ export default function Dashboard() {
               >
                 <defs>
                   <linearGradient id="gradReceitas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0f172a" stopOpacity={0.12} />
-                    <stop offset="95%" stopColor="#0f172a" stopOpacity={0} />
+                    <stop
+                      offset="5%"
+                      stopColor={receitaColor}
+                      stopOpacity={0.12}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={receitaColor}
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                   <linearGradient id="gradDespesas" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.12} />
-                    <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
+                    <stop
+                      offset="5%"
+                      stopColor={despesaColor}
+                      stopOpacity={0.12}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={despesaColor}
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -278,20 +299,20 @@ export default function Dashboard() {
                 <Area
                   type="monotone"
                   dataKey="receitas"
-                  stroke="#ffffff"
+                  stroke={receitaColor}
                   strokeWidth={2.5}
                   fill="url(#gradReceitas)"
                   dot={false}
-                  activeDot={{ r: 4, fill: "#ffffff", strokeWidth: 0 }}
+                  activeDot={{ r: 4, fill: receitaColor, strokeWidth: 0 }}
                 />
                 <Area
                   type="monotone"
                   dataKey="despesas"
-                  stroke="#52525b"
+                  stroke={despesaColor}
                   strokeWidth={2}
                   fill="url(#gradDespesas)"
                   dot={false}
-                  activeDot={{ r: 4, fill: "#52525b", strokeWidth: 0 }}
+                  activeDot={{ r: 4, fill: despesaColor, strokeWidth: 0 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
