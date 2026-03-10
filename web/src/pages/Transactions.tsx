@@ -1,9 +1,6 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
-  LayoutGrid,
   Receipt,
-  Settings,
-  LogOut,
   Plus,
   Pencil,
   Trash2,
@@ -11,12 +8,10 @@ import {
   ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
-  UserRound,
   CalendarClock,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
 import { useTransactions } from "../hooks/useTransactions";
 import { useScheduledTransactions } from "../hooks/useScheduledTransactions";
 import {
@@ -33,18 +28,15 @@ import TransactionModal from "../components/TransactionModal";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import ScheduledModal from "../components/ScheduledModal";
 import ToastContainer from "../components/ToastContainer";
-import AvatarMenu from "../components/AvatarMenu";
 import MonthYearPicker from "../components/MonthYearPicker";
+import PageLayout from "../components/PageLayout";
 import { useToast } from "../hooks/useToast";
-import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Tab = "transactions" | "scheduled";
 
 export default function Transactions() {
   usePageTitle("Transações");
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<Tab>("transactions");
   const now = new Date();
@@ -60,8 +52,6 @@ export default function Transactions() {
     useState<Transaction | null>(null);
   const [selectedScheduled, setSelectedScheduled] =
     useState<ScheduledTransaction | null>(null);
-  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
-  const avatarRef = useRef<HTMLDivElement>(null);
 
   const { data: transactionsData, isLoading } = useTransactions({
     page,
@@ -78,12 +68,12 @@ export default function Transactions() {
   const totalPages = transactionsData?.totalPages ?? 1;
   const { toasts, addToast } = useToast();
 
-  function handleEdit(transaction: Transaction) {
-    setSelectedTransaction(transaction);
+  function handleEdit(t: Transaction) {
+    setSelectedTransaction(t);
     setIsModalOpen(true);
   }
-  function handleDelete(transaction: Transaction) {
-    setSelectedTransaction(transaction);
+  function handleDelete(t: Transaction) {
+    setSelectedTransaction(t);
     setIsDeleteOpen(true);
   }
   function handleCloseModal() {
@@ -127,68 +117,13 @@ export default function Transactions() {
     addToast("Agendado removido.");
   }
 
-  const sidebar = (
-    <aside className="w-64 bg-app-card dark:bg-dark-card border-r border-app-border dark:border-dark-border hidden xl:flex flex-col">
-      <div className="p-8 flex items-center gap-3">
-        <img
-          src="/Icon.png"
-          alt="MyCash"
-          className="h-10 w-10 object-contain cursor-pointer shrink-0"
-        />
-        <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight cursor-default">
-          MyCash
-        </h2>
-      </div>
-
-      <nav className="flex-1 px-4 space-y-1 mt-2">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
-        >
-          <LayoutGrid className="h-4 w-4" />
-          Visão Geral
-        </button>
-        <button className="w-full flex items-center gap-3 px-4 py-3 bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg rounded-2xl font-semibold transition-all cursor-pointer text-sm">
-          <Receipt className="h-4 w-4" />
-          Transações
-        </button>
-      </nav>
-
-      <div className="p-4 space-y-1 mb-2 mx-2">
-        <button
-          onClick={() => navigate("/settings")}
-          className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
-        >
-          <Settings className="h-4 w-4" />
-          Ajustes
-        </button>
-        <button
-          onClick={signOut}
-          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-2xl font-medium transition-all cursor-pointer text-sm"
-        >
-          <LogOut className="h-4 w-4" />
-          Sair
-        </button>
-      </div>
-    </aside>
-  );
-
   return (
-    <div className="flex min-h-screen w-full bg-app-bg dark:bg-dark-bg font-sans">
-      {sidebar}
-
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <header className="px-8 lg:px-10 pt-8 pb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-app-text dark:text-dark-text">
-              Transações
-            </h1>
-            <p className="text-sm text-app-muted dark:text-dark-muted mt-0.5">
-              Gerencie todas as suas movimentações.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
+    <>
+      <PageLayout
+        title="Transações"
+        subtitle="Gerencie todas as suas movimentações."
+        actions={
+          <>
             {activeTab === "transactions" && (
               <MonthYearPicker
                 month={selectedMonth}
@@ -209,25 +144,10 @@ export default function Transactions() {
                 ? "Nova transação"
                 : "Novo agendado"}
             </button>
-            <div className="relative">
-              <div
-                ref={avatarRef}
-                onClick={() => setIsAvatarMenuOpen((prev) => !prev)}
-                className="h-10 w-10 rounded-2xl bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                title={user?.name ?? ""}
-              >
-                <UserRound size={18} />
-              </div>
-              <AvatarMenu
-                isOpen={isAvatarMenuOpen}
-                onClose={() => setIsAvatarMenuOpen(false)}
-                anchorRef={avatarRef}
-              />
-            </div>
-          </div>
-        </header>
-
-        <div className="px-8 lg:px-10 pb-10 flex flex-col gap-4">
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
           <div className="flex gap-1 p-1 bg-app-card dark:bg-dark-card border border-app-border dark:border-dark-border rounded-2xl w-fit">
             <button
               onClick={() => setActiveTab("transactions")}
@@ -278,9 +198,9 @@ export default function Transactions() {
                   </thead>
                   <tbody>
                     {isLoading ? (
-                      Array.from({ length: pageSize }).map((_, index) => (
+                      Array.from({ length: pageSize }).map((_, i) => (
                         <tr
-                          key={index}
+                          key={i}
                           className="border-b border-app-border-subtle dark:border-dark-border-subtle"
                         >
                           <td className="px-6 py-4">
@@ -562,7 +482,7 @@ export default function Transactions() {
             </div>
           )}
         </div>
-      </main>
+      </PageLayout>
 
       <TransactionModal
         isOpen={isModalOpen}
@@ -581,6 +501,6 @@ export default function Transactions() {
         scheduled={selectedScheduled}
       />
       <ToastContainer toasts={toasts} />
-    </div>
+    </>
   );
 }
