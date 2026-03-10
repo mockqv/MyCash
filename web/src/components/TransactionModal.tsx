@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { TransactionCategory, TransactionType } from "../types/transaction";
 import type { Transaction } from "../types/transaction";
-import { categoryLabels } from "../utils/transaction";
+import { categoryLabels, categoriesByType } from "../utils/transaction";
 import {
   useCreateTransaction,
   useUpdateTransaction,
@@ -18,8 +18,8 @@ type FormState = {
   description: string;
   amount: string;
   date: string;
-  type: number;
-  category: number;
+  type: TransactionType;
+  category: TransactionCategory;
 };
 
 const defaultForm: FormState = {
@@ -27,7 +27,7 @@ const defaultForm: FormState = {
   amount: "",
   date: new Date().toISOString().split("T")[0],
   type: TransactionType.Receita,
-  category: TransactionCategory.Renda,
+  category: TransactionCategory.Salario,
 };
 
 export default function TransactionModal({
@@ -58,6 +58,11 @@ export default function TransactionModal({
     }
   }, [transaction, isOpen]);
 
+  function handleTypeChange(type: TransactionType) {
+    const firstCategory = categoriesByType[type][0];
+    setForm((prev) => ({ ...prev, type, category: firstCategory }));
+  }
+
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) {
@@ -83,6 +88,9 @@ export default function TransactionModal({
 
   if (!isOpen) return null;
 
+  const availableCategories =
+    categoriesByType[Number(form.type) as TransactionType];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
@@ -104,6 +112,7 @@ export default function TransactionModal({
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* Tipo */}
           <div className="flex gap-2 p-1 bg-app-elevated dark:bg-dark-elevated rounded-2xl">
             {[
               { label: "Receita", value: TransactionType.Receita },
@@ -112,9 +121,7 @@ export default function TransactionModal({
               <button
                 key={option.value}
                 type="button"
-                onClick={() =>
-                  setForm((prev) => ({ ...prev, type: option.value }))
-                }
+                onClick={() => handleTypeChange(option.value)}
                 className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                   Number(form.type) === option.value
                     ? option.value === TransactionType.Receita
@@ -128,6 +135,7 @@ export default function TransactionModal({
             ))}
           </div>
 
+          {/* Descrição */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
               Descrição
@@ -143,6 +151,7 @@ export default function TransactionModal({
             />
           </div>
 
+          {/* Valor + Data */}
           <div className="flex gap-4">
             <div className="flex flex-col gap-1.5 flex-1">
               <label className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
@@ -175,22 +184,29 @@ export default function TransactionModal({
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          {/* Categoria — filtrada por tipo */}
+          <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
               Categoria
             </label>
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-2xl border border-app-border dark:border-dark-border bg-app-card dark:bg-dark-elevated text-sm outline-none transition-all cursor-pointer text-app-text dark:text-dark-text focus:border-app-text dark:focus:border-dark-muted"
-            >
-              {Object.entries(categoryLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
+            <div className="flex flex-wrap gap-2">
+              {availableCategories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({ ...prev, category: cat }))
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${
+                    Number(form.category) === cat
+                      ? "bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg border-transparent"
+                      : "bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted border-app-border dark:border-dark-border hover:text-app-text dark:hover:text-dark-text"
+                  }`}
+                >
+                  {categoryLabels[cat]}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           <button

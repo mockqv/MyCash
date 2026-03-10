@@ -10,4 +10,5 @@ namespace MyCash.API.Data;
         }
 
         public DbSet<Transaction> Transactions { get; set; }
-    }
+        public DbSet<ScheduledTransaction> ScheduledTransactions { get; set; }
+}

@@ -19,6 +19,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip as PieTooltip,
 } from "recharts";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -26,9 +30,10 @@ import {
   useTransactionSummary,
 } from "../hooks/useTransactions";
 import { formatCurrency, formatDate } from "../utils/formatters";
-import { TransactionType } from "../types/transaction";
+import { TransactionType, TransactionCategory } from "../types/transaction";
+import { categoryLabels, categoryColors } from "../utils/transaction";
 import AvatarMenu from "../components/AvatarMenu";
-import MonthYearPicker from "../components/MonthYearPicker"
+import MonthYearPicker from "../components/MonthYearPicker";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "../hooks/usePageTitle";
 
@@ -111,55 +116,73 @@ export default function Dashboard() {
     return grouped;
   }, [allTransactionsData]);
 
-  const sidebarNav = (
-    <aside className="w-64 bg-app-card dark:bg-dark-card border-r border-app-border dark:border-dark-border hidden xl:flex flex-col">
-      <div className="p-8 flex items-center gap-3">
-        <img
-          src="/Icon.png"
-          alt="MyCash"
-          className="h-10 w-10 object-contain cursor-pointer shrink-0"
-        />
-        <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight cursor-default">
-          MyCash
-        </h2>
-      </div>
-
-      <nav className="flex-1 px-4 space-y-1 mt-2">
-        <button className="w-full flex items-center gap-3 px-4 py-3 bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg rounded-2xl font-semibold transition-all cursor-pointer text-sm">
-          <LayoutGrid className="h-4 w-4" />
-          Visão Geral
-        </button>
-        <button
-          onClick={() => navigate("/transactions")}
-          className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
-        >
-          <Receipt className="h-4 w-4" />
-          Transações
-        </button>
-      </nav>
-
-      <div className="p-4 space-y-1 mb-2 mx-2">
-        <button
-          onClick={() => navigate("/settings")}
-          className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
-        >
-          <Settings className="h-4 w-4" />
-          Ajustes
-        </button>
-        <button
-          onClick={signOut}
-          className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-2xl font-medium transition-all cursor-pointer text-sm"
-        >
-          <LogOut className="h-4 w-4" />
-          Sair
-        </button>
-      </div>
-    </aside>
-  );
+  const categoryChartData = useMemo(() => {
+    const counts: Partial<Record<TransactionCategory, number>> = {};
+    allTransactionsData?.items
+      ?.filter((t) => {
+        const d = new Date(t.date);
+        return (
+          d.getMonth() + 1 === selectedMonth &&
+          d.getFullYear() === selectedYear &&
+          t.type === TransactionType.Despesa
+        );
+      })
+      .forEach((t) => {
+        counts[t.category] = (counts[t.category] ?? 0) + t.amount;
+      });
+    return Object.entries(counts).map(([cat, value]) => ({
+      category: Number(cat) as TransactionCategory,
+      name: categoryLabels[Number(cat) as TransactionCategory],
+      value,
+      color: categoryColors[Number(cat) as TransactionCategory],
+    }));
+  }, [allTransactionsData, selectedMonth, selectedYear]);
 
   return (
     <div className="flex min-h-screen w-full bg-app-bg dark:bg-dark-bg font-sans">
-      {sidebarNav}
+      <aside className="w-64 bg-app-card dark:bg-dark-card border-r border-app-border dark:border-dark-border hidden xl:flex flex-col">
+        <div className="p-8 flex items-center gap-3">
+          <img
+            src="/Icon.png"
+            alt="MyCash"
+            className="h-10 w-10 object-contain cursor-pointer shrink-0"
+          />
+          <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight cursor-default">
+            MyCash
+          </h2>
+        </div>
+
+        <nav className="flex-1 px-4 space-y-1 mt-2">
+          <button className="w-full flex items-center gap-3 px-4 py-3 bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg rounded-2xl font-semibold transition-all cursor-pointer text-sm">
+            <LayoutGrid className="h-4 w-4" />
+            Visão Geral
+          </button>
+          <button
+            onClick={() => navigate("/transactions")}
+            className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
+          >
+            <Receipt className="h-4 w-4" />
+            Transações
+          </button>
+        </nav>
+
+        <div className="p-4 space-y-1 mb-2 mx-2">
+          <button
+            onClick={() => navigate("/settings")}
+            className="w-full flex items-center gap-3 px-4 py-3 text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover rounded-2xl font-medium transition-all cursor-pointer text-sm"
+          >
+            <Settings className="h-4 w-4" />
+            Ajustes
+          </button>
+          <button
+            onClick={signOut}
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-2xl font-medium transition-all cursor-pointer text-sm"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </button>
+        </div>
+      </aside>
 
       <main className="flex-1 flex flex-col overflow-y-auto">
         <header className="px-8 lg:px-10 pt-8 pb-6 flex items-center justify-between">
@@ -177,7 +200,10 @@ export default function Dashboard() {
             <MonthYearPicker
               month={selectedMonth}
               year={selectedYear}
-              onChange={(m: number, y: number) => { setSelectedMonth(m); setSelectedYear(y) }}
+              onChange={(m: number, y: number) => {
+                setSelectedMonth(m);
+                setSelectedYear(y);
+              }}
             />
 
             <button
@@ -268,8 +294,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-            <div className="xl:col-span-3 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm">
+          <div className="grid grid-cols-1 xl:grid-cols-8 gap-4">
+            <div className="xl:col-span-4 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-base font-black text-app-text dark:text-dark-text">
@@ -366,6 +392,82 @@ export default function Dashboard() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+
+            <div className="xl:col-span-2 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col">
+              <div className="mb-4">
+                <h2 className="text-base font-black text-app-text dark:text-dark-text">
+                  Categorias
+                </h2>
+                <p className="text-xs text-app-muted dark:text-dark-muted mt-0.5">
+                  Despesas do mês
+                </p>
+              </div>
+
+              {categoryChartData.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-sm text-app-muted dark:text-dark-muted">
+                    Sem despesas
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 flex-1">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie
+                        data={categoryChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={70}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {categoryChartData.map((entry) => (
+                          <Cell key={entry.category} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <PieTooltip
+                        formatter={(
+                          value: number | undefined,
+                          name: string | undefined,
+                        ) => [
+                          isPrivacyMode ? "••••" : formatCurrency(value ?? 0),
+                          name ?? "",
+                        ]}
+                        contentStyle={{
+                          background: "var(--color-app-card)",
+                          border: "1px solid var(--color-app-border)",
+                          borderRadius: "16px",
+                          fontSize: "12px",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+
+                  <div className="flex flex-col gap-2">
+                    {categoryChartData.map((entry) => (
+                      <div
+                        key={entry.category}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-xs text-app-muted dark:text-dark-muted">
+                            {entry.name}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-app-text dark:text-dark-text">
+                          {isPrivacyMode ? "••••" : formatCurrency(entry.value)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="xl:col-span-2 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col">

@@ -1,29 +1,28 @@
 export const TransactionType = {
   Receita: 0,
   Despesa: 1,
-} as const
-
-export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
+} as const;
 
 export const TransactionCategory = {
-  Alimentacao: 0,
-  Transporte: 1,
-  Entretenimento: 2,
-  Saude: 3,
-  Educacao: 4,
-  Renda: 5,
-  Outros: 6,
-} as const
+  Outros: 0,
+  Alimentacao: 1,
+  Transporte: 2,
+  Salario: 3,
+  Lazer: 4,
+  Saude: 5,
+  Moradia: 6,
+} as const;
 
-export type TransactionCategory = (typeof TransactionCategory)[keyof typeof TransactionCategory]
+export type TransactionType = typeof TransactionType[keyof typeof TransactionType];
+export type TransactionCategory = typeof TransactionCategory[keyof typeof TransactionCategory];
 
 export type Transaction = {
   id: string
   description: string
   amount: number
   date: string
-  type: TransactionType
-  category: TransactionCategory
+  type: typeof TransactionType[keyof typeof TransactionType]
+  category: typeof TransactionCategory[keyof typeof TransactionCategory]
 }
 
 export type PaginatedTransactions = {
