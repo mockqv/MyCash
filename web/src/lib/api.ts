@@ -10,10 +10,13 @@ api.interceptors.request.use(async (config) => {
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (!token) {
+    await supabase.auth.signOut()
+    window.location.href = "/login"
+    return Promise.reject(new Error("No session"))
   }
 
+  config.headers.Authorization = `Bearer ${token}`
   return config
 })
 

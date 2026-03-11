@@ -21,7 +21,6 @@ import {
   useScheduledPending,
 } from "../hooks/useScheduledTransactions";
 import {
-  useDeleteScheduled,
   useUpdateScheduled,
   useConfirmOccurrence,
   useSkipOccurrence,
@@ -79,7 +78,6 @@ export default function Transactions() {
   const { data: scheduled = [], isLoading: isLoadingScheduled } =
     useScheduledTransactions();
   const { data: pending = [] } = useScheduledPending();
-  const { mutateAsync: deleteScheduled } = useDeleteScheduled();
   const { mutateAsync: updateScheduled } = useUpdateScheduled();
   const { mutateAsync: confirmOccurrence } = useConfirmOccurrence();
   const { mutateAsync: skipOccurrence } = useSkipOccurrence();
