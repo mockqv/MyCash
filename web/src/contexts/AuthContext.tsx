@@ -26,26 +26,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }
 
+  const isAuthRoute = () =>
+    window.location.pathname.includes("/login") ||
+    window.location.pathname.includes("/register");
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(mapUser(data.session));
-      setIsLoading(false);
+      if (!data.session) {
+        setUser(null);
+        setSession(null);
+        setIsLoading(false);
+        if (!isAuthRoute()) window.location.href = "/login";
+        return;
+      }
+
+      supabase.auth.getUser().then(({ data: userData, error }) => {
+        if (error || !userData.user) {
+          setUser(null);
+          setSession(null);
+          setIsLoading(false);
+          if (!isAuthRoute()) window.location.href = "/login";
+          return;
+        }
+        setSession(data.session);
+        setUser(mapUser(data.session));
+        setIsLoading(false);
+      });
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (
-          event === "SIGNED_OUT" ||
-          session === null
-        ) {
+        if (event === "SIGNED_OUT" || session === null) {
           setUser(null);
           setSession(null);
           setIsLoading(false);
-          window.location.href = "/login";
+          if (!isAuthRoute()) window.location.href = "/login";
           return;
         }
-
         setSession(session);
         setUser(mapUser(session));
         setIsLoading(false);
