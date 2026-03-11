@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -11,24 +11,28 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ScheduledConfirmModal from "./components/ScheduledConfirmModal";
 import { useScheduledPending } from "./hooks/useScheduledTransactions";
+import type { ScheduledOccurrence } from "./types/scheduled";
 
 const queryClient = new QueryClient();
 
 function PendingChecker() {
   const { user } = useAuth();
   const { data: pending = [] } = useScheduledPending();
-  const [dismissed, setDismissed] = useState(false);
+  const [shownIds, setShownIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (pending.length > 0) setDismissed(false);
-  }, [pending.length]);
+  if (!user || pending.length === 0) return null;
 
-  if (!user || dismissed || pending.length === 0) return null;
+  const unseen = pending.filter(
+    (p: ScheduledOccurrence) => !shownIds.includes(p.id),
+  );
+  if (unseen.length === 0) return null;
 
   return (
     <ScheduledConfirmModal
-      items={pending}
-      onDismiss={() => setDismissed(true)}
+      items={unseen}
+      onDismiss={() =>
+        setShownIds((prev) => [...prev, ...unseen.map((p) => p.id)])
+      }
     />
   );
 }

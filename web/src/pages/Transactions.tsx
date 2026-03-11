@@ -43,6 +43,7 @@ import MonthYearPicker from "../components/MonthYearPicker";
 import PageLayout from "../components/PageLayout";
 import { useToast } from "../hooks/useToast";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import DeleteScheduledConfirmModal from "../components/DeleteScheduledConfirmModal";
 
 type Tab = "transactions" | "scheduled";
 
@@ -65,6 +66,9 @@ export default function Transactions() {
     useState<ScheduledTransaction | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [skippingId, setSkippingId] = useState<string | null>(null);
+  const [isDeleteScheduledOpen, setIsDeleteScheduledOpen] = useState(false);
+  const [scheduledToDelete, setScheduledToDelete] =
+    useState<ScheduledTransaction | null>(null);
 
   const { data: transactionsData, isLoading } = useTransactions({
     page,
@@ -129,9 +133,14 @@ export default function Transactions() {
     addToast(item.isActive ? "Agendado pausado." : "Agendado reativado.");
   }
 
-  async function handleDeleteScheduled(id: string) {
-    await deleteScheduled(id);
-    addToast("Agendado removido.");
+  function handleDeleteScheduled(item: ScheduledTransaction) {
+    setScheduledToDelete(item);
+    setIsDeleteScheduledOpen(true);
+  }
+
+  function handleCloseDeleteScheduled() {
+    setIsDeleteScheduledOpen(false);
+    setScheduledToDelete(null);
   }
 
   async function handleConfirmDue(occurrenceId: string) {
@@ -586,7 +595,7 @@ export default function Transactions() {
                                   <Pencil size={13} />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteScheduled(item.id)}
+                                  onClick={() => handleDeleteScheduled(item)}
                                   className="h-8 w-8 rounded-xl flex items-center justify-center bg-app-elevated dark:bg-dark-elevated hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer text-app-muted dark:text-dark-muted"
                                 >
                                   <Trash2 size={13} />
@@ -622,6 +631,12 @@ export default function Transactions() {
         scheduled={selectedScheduled}
       />
       <ToastContainer toasts={toasts} />
+      <DeleteScheduledConfirmModal
+        isOpen={isDeleteScheduledOpen}
+        onClose={handleCloseDeleteScheduled}
+        scheduled={scheduledToDelete}
+        onSuccess={() => addToast("Agendado removido.")}
+      />
     </>
   );
 }
