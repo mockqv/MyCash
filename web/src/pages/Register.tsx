@@ -11,8 +11,14 @@ export default function Register() {
   usePageTitle("Cadastro");
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("form");
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -23,6 +29,17 @@ export default function Register() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (form.password !== form.confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
+    if (form.password.length < 8) {
+      setError("A senha deve ter no mínimo 8 caracteres.");
+      return;
+    }
+
     setIsLoading(true);
 
     const { error: signUpError } = await supabase.auth.signUp({
@@ -51,6 +68,29 @@ export default function Register() {
     setStep("success");
     setTimeout(() => navigate("/dashboard"), 3000);
   }
+
+  const passwordStrength = () => {
+    const len = form.password.length;
+    if (len === 0) return -1;
+    if (len < 4) return 0;
+    if (len < 8) return 1;
+    if (len < 12) return 2;
+    return 3;
+  };
+
+  const strengthColor = (index: number) => {
+    const strength = passwordStrength();
+    if (strength < index) return "#e2e8f0";
+    if (strength === 0) return "#f87171";
+    if (strength === 1) return "#f87171";
+    if (strength === 2) return "#fbbf24";
+    return "#0f172a";
+  };
+
+  const passwordsMatch =
+    form.confirmPassword.length > 0 && form.password === form.confirmPassword;
+  const passwordsMismatch =
+    form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
 
   if (step === "success") {
     return (
@@ -213,23 +253,58 @@ export default function Register() {
               </div>
               {form.password.length > 0 && (
                 <div className="flex gap-1 mt-1">
-                  {[...Array(4)].map((_, i) => (
+                  {[0, 1, 2, 3].map((i) => (
                     <div
                       key={i}
                       className="h-1 flex-1 rounded-full transition-all"
-                      style={{
-                        backgroundColor:
-                          form.password.length >= (i + 1) * 2
-                            ? i < 2
-                              ? "#f87171"
-                              : i < 3
-                                ? "#fbbf24"
-                                : "#0f172a"
-                            : "#e2e8f0",
-                      }}
+                      style={{ backgroundColor: strengthColor(i) }}
                     />
                   ))}
                 </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
+                Confirmar senha
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Repita sua senha"
+                  required
+                  className={`w-full px-4 py-3 pr-12 rounded-2xl border bg-white text-sm outline-none transition-all text-slate-900 placeholder:text-slate-300 ${
+                    passwordsMismatch
+                      ? "border-red-300 focus:border-red-400"
+                      : passwordsMatch
+                        ? "border-green-300 focus:border-green-400"
+                        : "border-slate-200 focus:border-slate-900"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-slate-300 hover:text-slate-500 transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
+                </button>
+              </div>
+              {passwordsMismatch && (
+                <p className="text-xs text-red-500 mt-0.5">
+                  As senhas não coincidem.
+                </p>
+              )}
+              {passwordsMatch && (
+                <p className="text-xs text-green-500 mt-0.5">
+                  Senhas coincidem.
+                </p>
               )}
             </div>
 
@@ -241,7 +316,7 @@ export default function Register() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || passwordsMismatch}
               className="w-full py-3.5 rounded-2xl bg-slate-900 text-white text-sm font-semibold transition-opacity hover:opacity-80 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
             >
               {isLoading && <Loader2 size={15} className="animate-spin" />}

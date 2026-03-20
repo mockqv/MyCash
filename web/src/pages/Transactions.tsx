@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Receipt,
   Plus,
@@ -49,6 +50,9 @@ type Tab = "transactions" | "scheduled";
 export default function Transactions() {
   usePageTitle("Transações");
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState<Tab>("transactions");
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
@@ -86,6 +90,13 @@ export default function Transactions() {
   const totalPages = transactionsData?.totalPages ?? 1;
   const { toasts, addToast } = useToast();
   const pendingCount = pending.length;
+
+  useEffect(() => {
+    if (location.state?.newTransaction) {
+      setIsModalOpen(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   function handleEdit(t: Transaction) {
     setSelectedTransaction(t);
