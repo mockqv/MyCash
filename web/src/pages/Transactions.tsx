@@ -27,8 +27,9 @@ import {
   useSkipOccurrence,
 } from "../hooks/useScheduledMutations";
 import { formatCurrency, formatDate } from "../utils/formatters";
-import { categoryLabels, categoryStyles } from "../utils/transaction";
 import { TransactionType } from "../types/transaction";
+import { useCategoryDisplay } from "../hooks/useCategoryDisplay";
+import { getIconComponent } from "../utils/icons";
 import { RecurrenceType } from "../types/scheduled";
 import type { Transaction } from "../types/transaction";
 import type {
@@ -90,6 +91,7 @@ export default function Transactions() {
   const totalPages = transactionsData?.totalPages ?? 1;
   const { toasts, addToast } = useToast();
   const pendingCount = pending.length;
+  const { getCategoryDisplay } = useCategoryDisplay();
 
   useEffect(() => {
     if (location.state?.newTransaction) {
@@ -323,11 +325,27 @@ export default function Transactions() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span
-                              className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${categoryStyles[transaction.category]}`}
-                            >
-                              {categoryLabels[transaction.category]}
-                            </span>
+                            {(() => {
+                              const cat = getCategoryDisplay(transaction.category, transaction.customCategoryId);
+                              const IconComp = getIconComponent(cat.icon);
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                                    cat.isCustom
+                                      ? "text-white"
+                                      : cat.style
+                                  }`}
+                                  style={
+                                    cat.isCustom
+                                      ? { backgroundColor: cat.color }
+                                      : undefined
+                                  }
+                                >
+                                  <IconComp size={11} />
+                                  {cat.label}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="px-6 py-4 text-sm text-app-muted dark:text-dark-muted font-medium">
                             {formatDate(transaction.date)}
@@ -422,7 +440,7 @@ export default function Transactions() {
                                 {item.description}
                               </p>
                               <p className="text-xs text-app-muted dark:text-dark-muted">
-                                {categoryLabels[item.category]}
+                                {getCategoryDisplay(item.category, (item as any).customCategoryId).label}
                               </p>
                             </div>
                           </div>
@@ -559,11 +577,27 @@ export default function Transactions() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <span
-                                className={`px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${categoryStyles[item.category]}`}
-                              >
-                                {categoryLabels[item.category]}
-                              </span>
+                              {(() => {
+                                const cat = getCategoryDisplay(item.category, item.customCategoryId);
+                                const IconComp = getIconComponent(cat.icon);
+                                return (
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                                      cat.isCustom
+                                        ? "text-white"
+                                        : cat.style
+                                    }`}
+                                    style={
+                                      cat.isCustom
+                                        ? { backgroundColor: cat.color }
+                                        : undefined
+                                    }
+                                  >
+                                    <IconComp size={11} />
+                                    {cat.label}
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="px-6 py-4 text-sm text-app-muted dark:text-dark-muted font-medium">
                               Todo dia {item.dayOfMonth}

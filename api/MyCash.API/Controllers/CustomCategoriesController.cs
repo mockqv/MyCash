@@ -34,6 +34,7 @@ public class CustomCategoriesController : ControllerBase
                 Name = c.Name,
                 Color = c.Color,
                 Icon = c.Icon,
+                Type = c.Type,
                 CreatedAt = c.CreatedAt
             })
             .ToListAsync();
@@ -51,7 +52,8 @@ public class CustomCategoriesController : ControllerBase
             UserId = userId,
             Name = request.Name,
             Color = request.Color,
-            Icon = request.Icon
+            Icon = request.Icon,
+            Type = request.Type
         };
 
         _context.CustomCategories.Add(category);
@@ -63,6 +65,7 @@ public class CustomCategoriesController : ControllerBase
             Name = category.Name,
             Color = category.Color,
             Icon = category.Icon,
+            Type = category.Type,
             CreatedAt = category.CreatedAt
         };
 
@@ -81,6 +84,7 @@ public class CustomCategoriesController : ControllerBase
         category.Name = request.Name;
         category.Color = request.Color;
         category.Icon = request.Icon;
+        category.Type = request.Type;
 
         await _context.SaveChangesAsync();
 

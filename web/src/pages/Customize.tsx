@@ -8,38 +8,6 @@ import {
   Loader2,
   Sparkles,
   Tag,
-  ShoppingCart,
-  Utensils,
-  Car,
-  Briefcase,
-  Gamepad2,
-  Heart,
-  Home,
-  GraduationCap,
-  Gift,
-  Smartphone,
-  Plane,
-  Music,
-  Dumbbell,
-  Coffee,
-  Baby,
-  Dog,
-  Wrench,
-  Shirt,
-  BookOpen,
-  Zap,
-  Wifi,
-  Droplets,
-  Fuel,
-  Landmark,
-  PiggyBank,
-  TrendingUp,
-  ShieldCheck,
-  Stethoscope,
-  Pill,
-  Scissors,
-  Palette as PaletteIcon,
-  type LucideIcon,
 } from "lucide-react";
 import PageLayout from "../components/PageLayout";
 import { usePageTitle } from "../hooks/usePageTitle";
@@ -50,58 +18,21 @@ import {
   useDeleteCustomCategory,
 } from "../hooks/useCustomCategories";
 import type { CustomCategory } from "../types/customCategory";
+import { ICON_MAP, AVAILABLE_ICON_NAMES, getIconComponent, AVAILABLE_COLORS } from "../utils/icons";
 
-const AVAILABLE_ICONS: { name: string; icon: LucideIcon }[] = [
-  { name: "Tag", icon: Tag },
-  { name: "ShoppingCart", icon: ShoppingCart },
-  { name: "Utensils", icon: Utensils },
-  { name: "Car", icon: Car },
-  { name: "Briefcase", icon: Briefcase },
-  { name: "Gamepad2", icon: Gamepad2 },
-  { name: "Heart", icon: Heart },
-  { name: "Home", icon: Home },
-  { name: "GraduationCap", icon: GraduationCap },
-  { name: "Gift", icon: Gift },
-  { name: "Smartphone", icon: Smartphone },
-  { name: "Plane", icon: Plane },
-  { name: "Music", icon: Music },
-  { name: "Dumbbell", icon: Dumbbell },
-  { name: "Coffee", icon: Coffee },
-  { name: "Baby", icon: Baby },
-  { name: "Dog", icon: Dog },
-  { name: "Wrench", icon: Wrench },
-  { name: "Shirt", icon: Shirt },
-  { name: "BookOpen", icon: BookOpen },
-  { name: "Zap", icon: Zap },
-  { name: "Wifi", icon: Wifi },
-  { name: "Droplets", icon: Droplets },
-  { name: "Fuel", icon: Fuel },
-  { name: "Landmark", icon: Landmark },
-  { name: "PiggyBank", icon: PiggyBank },
-  { name: "TrendingUp", icon: TrendingUp },
-  { name: "ShieldCheck", icon: ShieldCheck },
-  { name: "Stethoscope", icon: Stethoscope },
-  { name: "Pill", icon: Pill },
-  { name: "Scissors", icon: Scissors },
-  { name: "PaletteIcon", icon: PaletteIcon },
+const TYPE_OPTIONS = [
+  { label: "Receita", value: 0 },
+  { label: "Despesa", value: 1 },
+  { label: "Ambos", value: 2 },
 ];
-
-const AVAILABLE_COLORS = [
-  "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6",
-  "#3b82f6", "#6366f1", "#a855f7", "#ec4899", "#f43f5e",
-  "#71717a", "#0ea5e9", "#84cc16", "#d946ef", "#fb923c",
-];
-
-function getIconComponent(iconName: string): LucideIcon {
-  return AVAILABLE_ICONS.find((i) => i.name === iconName)?.icon ?? Tag;
-}
 
 type FormState = {
   name: string;
   color: string;
   icon: string;
+  type: number;
 };
-const emptyForm: FormState = { name: "", color: "#3b82f6", icon: "Tag" };
+const emptyForm: FormState = { name: "", color: "#3b82f6", icon: "Tag", type: 2 };
 
 export default function Customize() {
   usePageTitle("Personalizar");
@@ -126,7 +57,7 @@ export default function Customize() {
 
   function openEdit(cat: CustomCategory) {
     setEditingId(cat.id);
-    setForm({ name: cat.name, color: cat.color, icon: cat.icon });
+    setForm({ name: cat.name, color: cat.color, icon: cat.icon, type: cat.type });
     setIsFormOpen(true);
   }
 
@@ -152,6 +83,10 @@ export default function Customize() {
     setDeleteTarget(null);
   }
 
+  function getTypeLabel(type: number) {
+    return TYPE_OPTIONS.find((t) => t.value === type)?.label ?? "Ambos";
+  }
+
   return (
     <>
       <PageLayout
@@ -163,7 +98,8 @@ export default function Customize() {
             className="flex items-center gap-2 h-10 px-5 rounded-2xl bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg text-sm font-semibold transition-opacity hover:opacity-80 cursor-pointer"
           >
             <Plus size={15} />
-            Nova Categoria
+            <span className="hidden sm:inline">Nova Categoria</span>
+            <span className="sm:hidden">Nova</span>
           </button>
         }
       >
@@ -195,12 +131,12 @@ export default function Customize() {
                 ))}
               </div>
             ) : categories.length === 0 ? (
-              <div className="bg-app-card dark:bg-dark-card rounded-3xl border border-dashed border-app-border dark:border-dark-border p-12 flex flex-col items-center justify-center gap-3">
+              <div className="bg-app-card dark:bg-dark-card rounded-3xl border border-dashed border-app-border dark:border-dark-border p-8 sm:p-12 flex flex-col items-center justify-center gap-3">
                 <Tag className="h-10 w-10 text-app-muted dark:text-dark-muted opacity-50" />
-                <p className="text-[15px] font-semibold text-app-text dark:text-dark-text">
+                <p className="text-[15px] font-semibold text-app-text dark:text-dark-text text-center">
                   Nenhuma categoria criada ainda
                 </p>
-                <p className="text-sm text-app-muted dark:text-dark-muted">
+                <p className="text-sm text-app-muted dark:text-dark-muted text-center">
                   Crie categorias para organizar melhor suas transações.
                 </p>
                 <button
@@ -217,12 +153,12 @@ export default function Customize() {
                   return (
                     <div
                       key={cat.id}
-                      className="bg-app-card dark:bg-dark-card rounded-2xl border border-app-border dark:border-dark-border p-5 hover:shadow-md transition-shadow group"
+                      className="bg-app-card dark:bg-dark-card rounded-2xl border border-app-border dark:border-dark-border p-4 sm:p-5 hover:shadow-md transition-shadow group"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                           <div
-                            className="h-12 w-12 rounded-2xl flex items-center justify-center"
+                            className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl flex items-center justify-center shrink-0"
                             style={{ backgroundColor: `${cat.color}18` }}
                           >
                             <IconComp
@@ -230,22 +166,22 @@ export default function Customize() {
                               style={{ color: cat.color }}
                             />
                           </div>
-                          <div>
-                            <p className="text-[15px] font-bold text-app-text dark:text-dark-text leading-tight">
+                          <div className="min-w-0">
+                            <p className="text-[15px] font-bold text-app-text dark:text-dark-text leading-tight truncate">
                               {cat.name}
                             </p>
                             <div className="flex items-center gap-1.5 mt-1">
                               <span
-                                className="w-2.5 h-2.5 rounded-full"
+                                className="w-2 h-2 rounded-full shrink-0"
                                 style={{ backgroundColor: cat.color }}
                               />
-                              <span className="text-xs font-medium text-app-muted dark:text-dark-muted">
-                                Personalizada
+                              <span className="text-xs font-medium text-app-muted dark:text-dark-muted truncate">
+                                {getTypeLabel(cat.type)}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                           <button
                             onClick={() => openEdit(cat)}
                             className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-app-elevated dark:hover:bg-dark-elevated text-app-muted hover:text-app-text transition-colors cursor-pointer"
@@ -308,8 +244,8 @@ export default function Customize() {
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={closeForm}
           />
-          <div className="relative bg-app-card dark:bg-dark-card rounded-3xl border border-app-border dark:border-dark-border shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-app-border dark:border-dark-border">
+          <div className="relative bg-app-card dark:bg-dark-card rounded-3xl border border-app-border dark:border-dark-border shadow-2xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-app-border dark:border-dark-border shrink-0">
               <h3 className="text-lg font-black text-app-text dark:text-dark-text tracking-tight">
                 {editingId ? "Editar Categoria" : "Nova Categoria"}
               </h3>
@@ -321,7 +257,7 @@ export default function Customize() {
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-5 overflow-y-auto flex-1">
               {/* Name input */}
               <div>
                 <label className="block text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest mb-2">
@@ -337,6 +273,33 @@ export default function Customize() {
                 />
               </div>
 
+              {/* Type selector */}
+              <div>
+                <label className="block text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest mb-2">
+                  Tipo de Transação
+                </label>
+                <div className="flex gap-2 p-1 bg-app-elevated dark:bg-dark-elevated rounded-2xl">
+                  {TYPE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, type: opt.value })}
+                      className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                        form.type === opt.value
+                          ? opt.value === 0
+                            ? "bg-green-500 text-white shadow-sm"
+                            : opt.value === 1
+                              ? "bg-red-500 text-white shadow-sm"
+                              : "bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg shadow-sm"
+                          : "text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Color picker */}
               <div>
                 <label className="block text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest mb-2">
@@ -346,6 +309,7 @@ export default function Customize() {
                   {AVAILABLE_COLORS.map((color) => (
                     <button
                       key={color}
+                      type="button"
                       onClick={() => setForm({ ...form, color })}
                       className={`h-9 w-9 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
                         form.color === color
@@ -372,20 +336,24 @@ export default function Customize() {
                 <label className="block text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest mb-2">
                   Ícone
                 </label>
-                <div className="grid grid-cols-8 gap-2 max-h-[180px] overflow-y-auto pr-1">
-                  {AVAILABLE_ICONS.map(({ name, icon: Icon }) => (
-                    <button
-                      key={name}
-                      onClick={() => setForm({ ...form, icon: name })}
-                      className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                        form.icon === name
-                          ? "bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg shadow-md scale-110"
-                          : "bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover"
-                      }`}
-                    >
-                      <Icon size={18} />
-                    </button>
-                  ))}
+                <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-[160px] overflow-y-auto pr-1">
+                  {AVAILABLE_ICON_NAMES.map((name) => {
+                    const Icon = ICON_MAP[name];
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setForm({ ...form, icon: name })}
+                        className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                          form.icon === name
+                            ? "bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg shadow-md scale-110"
+                            : "bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted hover:text-app-text dark:hover:text-dark-text hover:bg-app-hover dark:hover:bg-dark-hover"
+                        }`}
+                      >
+                        <Icon size={18} />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -405,18 +373,18 @@ export default function Customize() {
                     );
                   })()}
                 </div>
-                <div>
-                  <p className="text-[15px] font-bold text-app-text dark:text-dark-text">
+                <div className="min-w-0">
+                  <p className="text-[15px] font-bold text-app-text dark:text-dark-text truncate">
                     {form.name || "Nome da categoria"}
                   </p>
                   <p className="text-xs text-app-muted dark:text-dark-muted mt-0.5">
-                    Preview
+                    {getTypeLabel(form.type)} · Preview
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-app-border dark:border-dark-border flex items-center justify-end gap-3">
+            <div className="px-6 py-4 border-t border-app-border dark:border-dark-border flex items-center justify-end gap-3 shrink-0">
               <button
                 onClick={closeForm}
                 className="h-10 px-5 rounded-2xl text-sm font-semibold text-app-muted hover:text-app-text transition-colors cursor-pointer"

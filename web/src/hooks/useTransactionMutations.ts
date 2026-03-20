@@ -8,6 +8,7 @@ type TransactionPayload = {
   date: string
   type: number
   category: number
+  customCategoryId?: string
 }
 
 export function useCreateTransaction() {

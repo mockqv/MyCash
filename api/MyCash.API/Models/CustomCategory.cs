@@ -21,5 +21,11 @@ public class CustomCategory
     [MaxLength(50)]
     public string Icon { get; set; } = "Tag";
 
+    /// <summary>
+    /// 0 = Receita only, 1 = Despesa only, 2 = Both
+    /// </summary>
+    public int Type { get; set; } = 2;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
+

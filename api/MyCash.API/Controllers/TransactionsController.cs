@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyCash.API.Data;
@@ -49,7 +49,8 @@ public class TransactionsController : ControllerBase
                 Amount = t.Amount,
                 Date = t.Date,
                 Type = t.Type,
-                Category = t.Category
+                Category = t.Category,
+                CustomCategoryId = t.CustomCategoryId
             })
             .ToListAsync();
 
@@ -102,7 +103,8 @@ public class TransactionsController : ControllerBase
             Amount = request.Amount,
             Date = request.Date,
             Type = request.Type,
-            Category = request.Category
+            Category = request.Category,
+            CustomCategoryId = request.CustomCategoryId
         };
 
         _context.Transactions.Add(transaction);
@@ -115,7 +117,8 @@ public class TransactionsController : ControllerBase
             Amount = transaction.Amount,
             Date = transaction.Date,
             Type = transaction.Type,
-            Category = transaction.Category
+            Category = transaction.Category,
+            CustomCategoryId = transaction.CustomCategoryId
         };
 
         return CreatedAtAction(nameof(GetTransactions), new { id = transaction.Id }, responseDto);
@@ -134,6 +137,7 @@ public class TransactionsController : ControllerBase
         transaction.Date = request.Date;
         transaction.Type = request.Type;
         transaction.Category = request.Category;
+        transaction.CustomCategoryId = request.CustomCategoryId;
 
         await _context.SaveChangesAsync();
 

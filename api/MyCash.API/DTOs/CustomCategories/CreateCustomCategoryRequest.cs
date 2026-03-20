@@ -15,4 +15,9 @@ public class CreateCustomCategoryRequest
     [Required]
     [MaxLength(50)]
     public string Icon { get; set; } = "Tag";
+
+    /// <summary>
+    /// 0 = Receita, 1 = Despesa, 2 = Ambos
+    /// </summary>
+    public int Type { get; set; } = 2;
 }

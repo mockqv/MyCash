@@ -18,11 +18,22 @@ export type ScheduledTransaction = {
     amount: number
     type: TransactionType
     category: TransactionCategory
+    customCategoryId?: string
     recurrence: RecurrenceType
     dayOfMonth: number
     isActive: boolean
-    createdAt: string
+    createdAt?: string
 }
+
+export type CreateScheduledTransactionPayload = Omit<
+  ScheduledTransaction,
+  "id" | "createdAt" | "isActive" | "customCategoryId"
+>;
+
+export type UpdateScheduledTransactionPayload = Omit<
+  ScheduledTransaction,
+  "createdAt" | "customCategoryId"
+>;
 
 export type ScheduledOccurrence = {
     id: string

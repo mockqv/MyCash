@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyCash.API.Data;
@@ -35,6 +35,7 @@ public class ScheduledTransactionsController : ControllerBase
                 Amount = s.Amount,
                 Type = s.Type,
                 Category = s.Category,
+                CustomCategoryId = s.CustomCategoryId,
                 Recurrence = s.Recurrence,
                 DayOfMonth = s.DayOfMonth,
                 IsActive = s.IsActive,
@@ -68,6 +69,7 @@ public class ScheduledTransactionsController : ControllerBase
                 Amount = s.Amount,
                 Type = s.Type,
                 Category = s.Category,
+                CustomCategoryId = s.CustomCategoryId,
                 Recurrence = s.Recurrence,
                 DayOfMonth = s.DayOfMonth,
                 IsActive = s.IsActive,
@@ -88,6 +90,7 @@ public class ScheduledTransactionsController : ControllerBase
             Amount = request.Amount,
             Type = request.Type,
             Category = request.Category,
+            CustomCategoryId = request.CustomCategoryId,
             Recurrence = request.Recurrence,
             DayOfMonth = request.DayOfMonth,
         };
@@ -102,6 +105,7 @@ public class ScheduledTransactionsController : ControllerBase
             Amount = scheduled.Amount,
             Type = scheduled.Type,
             Category = scheduled.Category,
+            CustomCategoryId = scheduled.CustomCategoryId,
             Recurrence = scheduled.Recurrence,
             DayOfMonth = scheduled.DayOfMonth,
             IsActive = scheduled.IsActive,
@@ -126,6 +130,7 @@ public class ScheduledTransactionsController : ControllerBase
             Date = DateTime.UtcNow,
             Type = scheduled.Type,
             Category = scheduled.Category,
+            CustomCategoryId = scheduled.CustomCategoryId
         };
 
         _context.Transactions.Add(transaction);
@@ -139,6 +144,7 @@ public class ScheduledTransactionsController : ControllerBase
             Date = transaction.Date,
             Type = transaction.Type,
             Category = transaction.Category,
+            CustomCategoryId = transaction.CustomCategoryId
         });
     }
 
@@ -155,6 +161,7 @@ public class ScheduledTransactionsController : ControllerBase
         scheduled.Amount = request.Amount;
         scheduled.Type = request.Type;
         scheduled.Category = request.Category;
+        scheduled.CustomCategoryId = request.CustomCategoryId;
         scheduled.DayOfMonth = request.DayOfMonth;
         scheduled.IsActive = request.IsActive;
 

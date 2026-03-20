@@ -18,7 +18,7 @@ export function useCustomCategories() {
 export function useCreateCustomCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (payload: { name: string; color: string; icon: string }) => {
+    mutationFn: async (payload: { name: string; color: string; icon: string; type: number }) => {
       const { data } = await api.post("/api/CustomCategories", payload)
       return data
     },
@@ -31,7 +31,7 @@ export function useCreateCustomCategory() {
 export function useUpdateCustomCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, ...payload }: { id: string; name: string; color: string; icon: string }) => {
+    mutationFn: async ({ id, ...payload }: { id: string; name: string; color: string; icon: string; type: number }) => {
       await api.put(`/api/CustomCategories/${id}`, payload)
     },
     onSuccess: () => {

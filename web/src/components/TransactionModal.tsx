@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { TransactionCategory, TransactionType } from "../types/transaction";
 import type { Transaction } from "../types/transaction";
-import { categoryLabels, categoriesByType } from "../utils/transaction";
+import { categoryLabels, categoriesByType, categoryColors, categoryIcons } from "../utils/transaction";
+import { getIconComponent } from "../utils/icons";
+import { useCustomCategories } from "../hooks/useCustomCategories";
 import {
   useCreateTransaction,
   useUpdateTransaction,
@@ -20,6 +22,7 @@ type FormState = {
   date: string;
   type: TransactionType;
   category: TransactionCategory;
+  customCategoryId: string | null;
 };
 
 const defaultForm: FormState = {
@@ -28,6 +31,7 @@ const defaultForm: FormState = {
   date: new Date().toISOString().split("T")[0],
   type: TransactionType.Receita,
   category: TransactionCategory.Salario,
+  customCategoryId: null,
 };
 
 export default function TransactionModal({
@@ -43,6 +47,7 @@ export default function TransactionModal({
   const { mutateAsync: updateTransaction, isPending: isUpdating } =
     useUpdateTransaction();
   const isLoading = isCreating || isUpdating;
+  const { data: customCategories = [] } = useCustomCategories();
 
   useEffect(() => {
     if (transaction) {
@@ -52,6 +57,7 @@ export default function TransactionModal({
         date: transaction.date.split("T")[0],
         type: transaction.type,
         category: transaction.category,
+        customCategoryId: transaction.customCategoryId || null,
       });
     } else {
       setForm(defaultForm);
@@ -60,7 +66,7 @@ export default function TransactionModal({
 
   function handleTypeChange(type: TransactionType) {
     const firstCategory = categoriesByType[type][0];
-    setForm((prev) => ({ ...prev, type, category: firstCategory }));
+    setForm((prev) => ({ ...prev, type, category: firstCategory, customCategoryId: null }));
   }
 
   function handleChange(
@@ -76,7 +82,8 @@ export default function TransactionModal({
       amount: parseFloat(form.amount),
       date: new Date(form.date).toISOString(),
       type: Number(form.type),
-      category: Number(form.category),
+      category: form.customCategoryId ? 0 : Number(form.category),
+      customCategoryId: form.customCategoryId || undefined,
     };
     if (isEditing && transaction) {
       await updateTransaction({ id: transaction.id, ...payload });
@@ -88,18 +95,21 @@ export default function TransactionModal({
 
   if (!isOpen) return null;
 
-  const availableCategories =
-    categoriesByType[Number(form.type) as TransactionType];
+  const currentType = Number(form.type) as TransactionType;
+  const availableCategories = categoriesByType[currentType];
+  const filteredCustom = customCategories.filter(
+    (c) => Number(c.type) === 2 || Number(c.type) === currentType,
+  );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="relative bg-app-card dark:bg-dark-card border border-transparent dark:border-dark-border rounded-3xl shadow-xl w-full max-w-md mx-4 p-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="relative bg-app-card dark:bg-dark-card border border-transparent dark:border-dark-border rounded-3xl shadow-xl w-full max-w-md p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
           <h2 className="text-xl font-black text-app-text dark:text-dark-text">
             {isEditing ? "Editar Transação" : "Nova Transação"}
           </h2>
@@ -152,7 +162,7 @@ export default function TransactionModal({
           </div>
 
           {/* Valor + Data */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex flex-col gap-1.5 flex-1">
               <label className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
                 Valor
@@ -169,7 +179,7 @@ export default function TransactionModal({
                 className="w-full px-4 py-3 rounded-2xl border border-app-border dark:border-dark-border bg-app-card dark:bg-dark-elevated text-sm outline-none transition-all text-app-text dark:text-dark-text placeholder:text-app-faint dark:placeholder:text-dark-faint focus:border-app-text dark:focus:border-dark-muted"
               />
             </div>
-            <div className="flex flex-col gap-1.5 flex-1">
+            <div className="flex flex-col gap-1.5 flex-1 sm:flex-initial sm:w-40">
               <label className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
                 Data
               </label>
@@ -184,28 +194,60 @@ export default function TransactionModal({
             </div>
           </div>
 
-          {/* Categoria — filtrada por tipo */}
+          {/* Categoria — padrão + personalizadas */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">
               Categoria
             </label>
             <div className="flex flex-wrap gap-2">
-              {availableCategories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() =>
-                    setForm((prev) => ({ ...prev, category: cat }))
-                  }
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${
-                    Number(form.category) === cat
-                      ? "bg-app-accent dark:bg-dark-accent text-app-accent-fg dark:text-dark-accent-fg border-transparent"
-                      : "bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted border-app-border dark:border-dark-border hover:text-app-text dark:hover:text-dark-text"
-                  }`}
-                >
-                  {categoryLabels[cat]}
-                </button>
-              ))}
+              {availableCategories.map((cat) => {
+                const IconComp = getIconComponent(categoryIcons[cat]);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({ ...prev, category: cat, customCategoryId: null }))
+                    }
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${
+                      Number(form.category) === cat && !form.customCategoryId
+                        ? "border-transparent text-white shadow-sm"
+                        : "bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted border-app-border dark:border-dark-border hover:text-app-text dark:hover:text-dark-text"
+                    }`}
+                    style={
+                      Number(form.category) === cat && !form.customCategoryId
+                        ? { backgroundColor: categoryColors[cat] }
+                        : undefined
+                    }
+                  >
+                    <IconComp size={12} />
+                    {categoryLabels[cat]}
+                  </button>
+                );
+              })}
+              {filteredCustom.map((cc) => {
+                const IconComp = getIconComponent(cc.icon);
+                const isSelected = form.customCategoryId === cc.id;
+                return (
+                  <button
+                    key={cc.id}
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, customCategoryId: cc.id, category: 0 }))}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-transparent text-white shadow-sm"
+                        : "bg-app-elevated dark:bg-dark-elevated text-app-muted dark:text-dark-muted border-app-border dark:border-dark-border hover:text-app-text dark:hover:text-dark-text"
+                    }`}
+                    title={`${cc.name} (personalizada)`}
+                    style={
+                      isSelected ? { backgroundColor: cc.color } : undefined
+                    }
+                  >
+                    <IconComp size={12} style={!isSelected ? { color: cc.color } : undefined} />
+                    {cc.name}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

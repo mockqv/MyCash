@@ -30,8 +30,9 @@ import {
 } from "../hooks/useTransactions";
 import { useScheduledTransactions } from "../hooks/useScheduledTransactions";
 import { formatCurrency, formatDate } from "../utils/formatters";
-import { TransactionType, TransactionCategory } from "../types/transaction";
+import { TransactionType } from "../types/transaction";
 import { categoryLabels, categoryColors } from "../utils/transaction";
+import { useCustomCategories } from "../hooks/useCustomCategories";
 import MonthYearPicker from "../components/MonthYearPicker";
 import PageLayout from "../components/PageLayout";
 import { useTheme } from "../contexts/ThemeContext";
@@ -83,6 +84,7 @@ export default function Dashboard() {
     selectedYear
   );
   const { data: scheduledData, isLoading: isLoadingScheduled } = useScheduledTransactions();
+  const { data: customCategories = [] } = useCustomCategories();
 
   const transactions = transactionsData?.items ?? [];
   const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0);
@@ -135,7 +137,7 @@ export default function Dashboard() {
   }, [allTransactionsData]);
 
   const categoryChartData = useMemo(() => {
-    const counts: Partial<Record<TransactionCategory, number>> = {};
+    const counts: Record<string, { name: string; value: number; color: string }> = {};
     allTransactionsData?.items
       ?.filter((t) => {
         const d = new Date(t.date);
@@ -146,15 +148,34 @@ export default function Dashboard() {
         );
       })
       .forEach((t) => {
-        counts[t.category] = (counts[t.category] ?? 0) + t.amount;
+        if (t.customCategoryId) {
+          const custom = customCategories.find((c) => c.id === t.customCategoryId);
+          if (custom) {
+            const key = `custom_${custom.id}`;
+            if (!counts[key]) {
+              counts[key] = { name: custom.name, value: 0, color: custom.color };
+            }
+            counts[key].value += t.amount;
+            return;
+          }
+        }
+        const key = `std_${t.category}`;
+        if (!counts[key]) {
+          counts[key] = {
+            name: categoryLabels[t.category] ?? "Outros",
+            value: 0,
+            color: categoryColors[t.category] ?? "#71717a",
+          };
+        }
+        counts[key].value += t.amount;
       });
-    return Object.entries(counts).map(([cat, value]) => ({
-      category: Number(cat) as TransactionCategory,
-      name: categoryLabels[Number(cat) as TransactionCategory],
-      value,
-      color: categoryColors[Number(cat) as TransactionCategory],
+    return Object.entries(counts).map(([key, data]) => ({
+      category: key,
+      name: data.name,
+      value: data.value,
+      color: data.color,
     }));
-  }, [allTransactionsData, selectedMonth, selectedYear]);
+  }, [allTransactionsData, selectedMonth, selectedYear, customCategories]);
 
   return (
     <PageLayout

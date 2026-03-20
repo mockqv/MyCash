@@ -1,4 +1,4 @@
-﻿using MyCash.API.Enums;
+using MyCash.API.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyCash.API.DTOs.ScheduledTransactions;
@@ -14,4 +14,6 @@ public class UpdateScheduledTransactionRequest
     public int DayOfMonth { get; set; }
 
     public bool IsActive { get; set; }
+
+    public Guid? CustomCategoryId { get; set; }
 }

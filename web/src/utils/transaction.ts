@@ -30,6 +30,16 @@ export const categoryColors: Record<TransactionCategory, string> = {
   [TransactionCategory.Moradia]: "#eab308",
 }
 
+export const categoryIcons: Record<TransactionCategory, string> = {
+  [TransactionCategory.Outros]: "Tag",
+  [TransactionCategory.Alimentacao]: "Utensils",
+  [TransactionCategory.Transporte]: "Car",
+  [TransactionCategory.Salario]: "Briefcase",
+  [TransactionCategory.Lazer]: "Gamepad2",
+  [TransactionCategory.Saude]: "Stethoscope",
+  [TransactionCategory.Moradia]: "Home",
+}
+
 // Categorias disponíveis por tipo de transação
 export const categoriesByType: Record<TransactionType, TransactionCategory[]> = {
   [TransactionType.Receita]: [

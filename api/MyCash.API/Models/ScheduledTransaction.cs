@@ -1,4 +1,4 @@
-﻿using MyCash.API.Enums;
+using MyCash.API.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyCash.API.Models;
@@ -14,6 +14,7 @@ public class ScheduledTransaction
     public decimal Amount { get; set; }
     public TransactionType Type { get; set; }
     public TransactionCategory Category { get; set; } = TransactionCategory.Outros;
+    public Guid? CustomCategoryId { get; set; }
     public RecurrenceType Recurrence { get; set; } = RecurrenceType.Monthly;
     public int DayOfMonth { get; set; }
     public bool IsActive { get; set; } = true;

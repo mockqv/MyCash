@@ -1,4 +1,4 @@
-﻿using MyCash.API.Enums;
+using MyCash.API.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyCash.API.DTOs.Transactions;
@@ -14,4 +14,6 @@ public class CreateTransactionRequest
 
     [EnumDataType(typeof(TransactionCategory), ErrorMessage = "Invalid category.")]
     public TransactionCategory Category { get; set; }
+
+    public Guid? CustomCategoryId { get; set; }
 }

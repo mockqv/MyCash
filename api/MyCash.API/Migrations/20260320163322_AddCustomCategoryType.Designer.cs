@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyCash.API.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MyCash.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260320163322_AddCustomCategoryType")]
+    partial class AddCustomCategoryType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -104,9 +107,6 @@ namespace MyCash.API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("CustomCategoryId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("DayOfMonth")
                         .HasColumnType("integer");
 
@@ -142,9 +142,6 @@ namespace MyCash.API.Migrations
 
                     b.Property<int>("Category")
                         .HasColumnType("integer");
-
-                    b.Property<Guid?>("CustomCategoryId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");

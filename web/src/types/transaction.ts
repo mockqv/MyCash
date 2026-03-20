@@ -13,6 +13,16 @@ export const TransactionCategory = {
   Moradia: 6,
 } as const;
 
+export type CreateTransactionPayload = Omit<
+  Transaction,
+  "id" | "createdAt" | "customCategory"
+>;
+
+export type UpdateTransactionPayload = Omit<
+  Transaction,
+  "createdAt" | "customCategory"
+>;
+
 export type TransactionType = typeof TransactionType[keyof typeof TransactionType];
 export type TransactionCategory = typeof TransactionCategory[keyof typeof TransactionCategory];
 
@@ -23,6 +33,7 @@ export type Transaction = {
   date: string
   type: typeof TransactionType[keyof typeof TransactionType]
   category: typeof TransactionCategory[keyof typeof TransactionCategory]
+  customCategoryId?: string
 }
 
 export type PaginatedTransactions = {

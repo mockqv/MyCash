@@ -1,4 +1,4 @@
-﻿using MyCash.API.Enums;
+using MyCash.API.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyCash.API.DTOs.ScheduledTransactions;
@@ -13,4 +13,6 @@ public class CreateScheduledTransactionRequest
 
     [Range(1, 31, ErrorMessage = "DayOfMonth must be between 1 and 31.")]
     public int DayOfMonth { get; set; }
+
+    public Guid? CustomCategoryId { get; set; }
 }

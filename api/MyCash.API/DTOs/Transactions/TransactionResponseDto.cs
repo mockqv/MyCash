@@ -1,4 +1,4 @@
-﻿using MyCash.API.Enums;
+using MyCash.API.Enums;
 
 namespace MyCash.API.DTOs.Transactions;
 
@@ -10,4 +10,5 @@ public class TransactionResponseDto
     public DateTime Date { get; set; }
     public TransactionType Type { get; set; }
     public TransactionCategory Category { get; set; }
+    public Guid? CustomCategoryId { get; set; }
 }

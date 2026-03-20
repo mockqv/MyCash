@@ -15,4 +15,6 @@ public class UpdateCustomCategoryRequest
     [Required]
     [MaxLength(50)]
     public string Icon { get; set; } = "Tag";
+
+    public int Type { get; set; } = 2;
 }

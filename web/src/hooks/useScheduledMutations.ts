@@ -10,6 +10,7 @@ type ScheduledPayload = {
     recurrence: RecurrenceType
     dayOfMonth: number
     isActive: boolean
+    customCategoryId?: string
 }
 
 export function useCreateScheduled() {

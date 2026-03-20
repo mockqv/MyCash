@@ -1,4 +1,4 @@
-﻿using MyCash.API.Enums;
+using MyCash.API.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace MyCash.API.Models;
@@ -17,4 +17,5 @@ public class Transaction
 
     public TransactionType Type { get; set; }
     public TransactionCategory Category { get; set; } = TransactionCategory.Outros;
+    public Guid? CustomCategoryId { get; set; }
 }
