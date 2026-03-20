@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MyCash.API.Models;
 
 namespace MyCash.API.Data;
@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<ScheduledTransaction> ScheduledTransactions { get; set; }
     public DbSet<ScheduledOccurrence> ScheduledOccurrences { get; set; }
+    public DbSet<CustomCategory> CustomCategories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

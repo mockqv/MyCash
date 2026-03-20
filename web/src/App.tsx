@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
+import Customize from "./pages/Customize";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ScheduledConfirmModal from "./components/ScheduledConfirmModal";
@@ -68,6 +69,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customize"
+                element={
+                  <ProtectedRoute>
+                    <Customize />
                   </ProtectedRoute>
                 }
               />

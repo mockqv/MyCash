@@ -1,4 +1,4 @@
-import { LayoutGrid, Receipt, Settings, LogOut, X } from "lucide-react";
+import { LayoutGrid, Receipt, Settings, LogOut, X, Palette } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -15,6 +15,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const links = [
     { label: "Visão Geral", icon: LayoutGrid, path: "/dashboard" },
     { label: "Transações", icon: Receipt, path: "/transactions" },
+    { label: "Personalizar", icon: Palette, path: "/customize" },
   ];
 
   const handleNavigation = (path: string) => {
