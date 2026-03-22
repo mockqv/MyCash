@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 xl:w-64 bg-app-card/95 dark:bg-dark-card/95 backdrop-blur-xl border-r border-app-border dark:border-dark-border flex flex-col transition-transform duration-300 ease-in-out transform shadow-2xl xl:shadow-none xl:translate-x-0 xl:relative ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 xl:w-64 bg-app-card/95 dark:bg-dark-card/95 backdrop-blur-xl border-r border-app-border dark:border-dark-border flex flex-col transition-transform duration-300 ease-in-out transform shadow-2xl xl:shadow-none xl:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

@@ -26,7 +26,7 @@ export default function PageLayout({
     <div className="flex min-h-screen w-full bg-app-bg dark:bg-dark-bg font-sans">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1 flex flex-col overflow-y-auto w-full relative">
+      <main className="flex-1 flex flex-col overflow-y-auto w-full relative xl:ml-64">
         <header className="px-6 lg:px-10 pt-8 pb-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <button
