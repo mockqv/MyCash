@@ -72,7 +72,7 @@ export default function PageLayout({
           </div>
         </header>
 
-        <div className="px-6 lg:px-10 pb-10 max-w-7xl mx-auto w-full flex-1">
+        <div className="px-6 lg:px-10 pb-10 max-w-[1600px] mx-auto w-full flex-1">
           {children}
         </div>
       </main>

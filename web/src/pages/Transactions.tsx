@@ -60,6 +60,7 @@ export default function Transactions() {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -79,6 +80,8 @@ export default function Transactions() {
     pageSize,
     month: selectedMonth,
     year: selectedYear,
+    startDate: dateRange?.start,
+    endDate: dateRange?.end,
   });
   const { data: scheduled = [], isLoading: isLoadingScheduled } =
     useScheduledTransactions();
@@ -119,6 +122,7 @@ export default function Transactions() {
   function handleMonthChange(month: number, year: number) {
     setSelectedMonth(month);
     setSelectedYear(year);
+    setDateRange(null);
     setPage(1);
   }
   function handleEditScheduled(item: ScheduledTransaction) {
@@ -186,6 +190,11 @@ export default function Transactions() {
                 month={selectedMonth}
                 year={selectedYear}
                 onChange={handleMonthChange}
+                dateRange={dateRange}
+                onDateRangeChange={(range) => {
+                  setDateRange(range);
+                  setPage(1);
+                }}
               />
             )}
             <button
@@ -289,15 +298,18 @@ export default function Transactions() {
                       <tr>
                         <td colSpan={5} className="text-center py-20">
                           <p className="text-sm text-app-muted dark:text-dark-muted">
-                            Nenhuma transação em
+                            Nenhuma transação encontrada
                           </p>
                           <p className="text-xs font-semibold text-app-faint dark:text-dark-faint mt-1">
-                            {new Intl.DateTimeFormat("pt-BR", {
-                              month: "long",
-                              year: "numeric",
-                            }).format(
-                              new Date(selectedYear, selectedMonth - 1),
-                            )}
+                            {dateRange
+                              ? "No período selecionado"
+                              : new Intl.DateTimeFormat("pt-BR", {
+                                  month: "long",
+                                  year: "numeric",
+                                }).format(
+                                  new Date(selectedYear, selectedMonth - 1),
+                                )
+                            }
                           </p>
                         </td>
                       </tr>

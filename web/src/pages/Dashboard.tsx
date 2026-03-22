@@ -66,6 +66,7 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
+  const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
 
   const { data: transactionsData, isLoading: isLoadingTransactions } =
     useTransactions({
@@ -73,15 +74,27 @@ export default function Dashboard() {
       pageSize: 10,
       month: selectedMonth,
       year: selectedYear,
+      startDate: dateRange?.start,
+      endDate: dateRange?.end,
     });
   const { data: allTransactionsData } = useTransactions({
     page: 1,
     pageSize: 100,
     year: selectedYear,
   });
+  const { data: filteredTransactionsData } = useTransactions({
+    page: 1,
+    pageSize: 500,
+    month: selectedMonth,
+    year: selectedYear,
+    startDate: dateRange?.start,
+    endDate: dateRange?.end,
+  });
   const { data: summary, isLoading: isLoadingSummary } = useTransactionSummary(
     selectedMonth,
-    selectedYear
+    selectedYear,
+    dateRange?.start,
+    dateRange?.end
   );
   const { data: scheduledData, isLoading: isLoadingScheduled } = useScheduledTransactions();
   const { data: customCategories = [] } = useCustomCategories();
@@ -128,54 +141,92 @@ export default function Dashboard() {
       despesas: 0,
     }));
     allTransactionsData?.items?.forEach((t) => {
+      // When dateRange is active, only include items within that range
+      if (dateRange) {
+        const d = t.date.split("T")[0];
+        if (d < dateRange.start || d > dateRange.end) return;
+      }
       const monthIndex = new Date(t.date).getMonth();
       if (t.type === TransactionType.Receita)
         grouped[monthIndex].receitas += t.amount;
       else grouped[monthIndex].despesas += t.amount;
     });
     return grouped;
-  }, [allTransactionsData]);
+  }, [allTransactionsData, dateRange]);
 
   const categoryChartData = useMemo(() => {
     const counts: Record<string, { name: string; value: number; color: string }> = {};
-    allTransactionsData?.items
-      ?.filter((t) => {
-        const d = new Date(t.date);
-        return (
-          d.getMonth() + 1 === selectedMonth &&
-          d.getFullYear() === selectedYear &&
-          t.type === TransactionType.Despesa
-        );
-      })
-      .forEach((t) => {
-        if (t.customCategoryId) {
-          const custom = customCategories.find((c) => c.id === t.customCategoryId);
-          if (custom) {
-            const key = `custom_${custom.id}`;
-            if (!counts[key]) {
-              counts[key] = { name: custom.name, value: 0, color: custom.color };
-            }
-            counts[key].value += t.amount;
-            return;
-          }
+    const addItem = (t: { category: number; customCategoryId?: string; amount: number }) => {
+      if (t.customCategoryId) {
+        const custom = customCategories.find((c) => c.id === t.customCategoryId);
+        if (custom) {
+          const key = `custom_${custom.id}`;
+          if (!counts[key]) counts[key] = { name: custom.name, value: 0, color: custom.color };
+          counts[key].value += t.amount;
+          return;
         }
-        const key = `std_${t.category}`;
-        if (!counts[key]) {
-          counts[key] = {
-            name: categoryLabels[t.category] ?? "Outros",
-            value: 0,
-            color: categoryColors[t.category] ?? "#71717a",
-          };
-        }
-        counts[key].value += t.amount;
-      });
+      }
+      const key = `std_${t.category}`;
+      if (!counts[key]) {
+        counts[key] = {
+          name: (categoryLabels as any)[t.category] ?? "Outros",
+          value: 0,
+          color: (categoryColors as any)[t.category] ?? "#71717a",
+        };
+      }
+      counts[key].value += t.amount;
+    };
+    filteredTransactionsData?.items
+      ?.filter((t) => t.type === TransactionType.Despesa)
+      .forEach(addItem);
+    // Include active scheduled expenses
+    scheduledData
+      ?.filter((s) => s.isActive && s.type === TransactionType.Despesa)
+      .forEach((s) => addItem({ category: s.category, customCategoryId: s.customCategoryId, amount: s.amount }));
     return Object.entries(counts).map(([key, data]) => ({
       category: key,
       name: data.name,
       value: data.value,
       color: data.color,
     }));
-  }, [allTransactionsData, selectedMonth, selectedYear, customCategories]);
+  }, [filteredTransactionsData, customCategories, scheduledData]);
+
+  const incomeCategoryChartData = useMemo(() => {
+    const counts: Record<string, { name: string; value: number; color: string }> = {};
+    const addItem = (t: { category: number; customCategoryId?: string; amount: number }) => {
+      if (t.customCategoryId) {
+        const custom = customCategories.find((c) => c.id === t.customCategoryId);
+        if (custom) {
+          const key = `custom_${custom.id}`;
+          if (!counts[key]) counts[key] = { name: custom.name, value: 0, color: custom.color };
+          counts[key].value += t.amount;
+          return;
+        }
+      }
+      const key = `std_${t.category}`;
+      if (!counts[key]) {
+        counts[key] = {
+          name: (categoryLabels as any)[t.category] ?? "Outros",
+          value: 0,
+          color: (categoryColors as any)[t.category] ?? "#22c55e",
+        };
+      }
+      counts[key].value += t.amount;
+    };
+    filteredTransactionsData?.items
+      ?.filter((t) => t.type === TransactionType.Receita)
+      .forEach(addItem);
+    // Include active scheduled income
+    scheduledData
+      ?.filter((s) => s.isActive && s.type === TransactionType.Receita)
+      .forEach((s) => addItem({ category: s.category, customCategoryId: s.customCategoryId, amount: s.amount }));
+    return Object.entries(counts).map(([key, data]) => ({
+      category: key,
+      name: data.name,
+      value: data.value,
+      color: data.color,
+    }));
+  }, [filteredTransactionsData, customCategories, scheduledData]);
 
   return (
     <PageLayout
@@ -189,7 +240,10 @@ export default function Dashboard() {
             onChange={(m: number, y: number) => {
               setSelectedMonth(m);
               setSelectedYear(y);
+              setDateRange(null);
             }}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
           />
           <button
             onClick={() => setIsPrivacyMode(!isPrivacyMode)}
@@ -292,8 +346,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           
           {/* Main Chart Area */}
-          <div className="xl:col-span-8 bg-app-card dark:bg-dark-card rounded-3xl p-6 lg:p-8 border border-app-border dark:border-dark-border shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+          <div className="xl:col-span-8 bg-app-card dark:bg-dark-card rounded-3xl p-6 lg:p-8 border border-app-border dark:border-dark-border shadow-sm self-start">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-4">
               <div>
                 <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight">
                   Fluxo de Caixa Anual
@@ -313,11 +367,8 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart
-                data={chartData}
-                margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-              >
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradReceitas" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={receitaColor} stopOpacity={0.25} />
@@ -338,88 +389,8 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Categories area */}
-          <div className="xl:col-span-4 bg-app-card dark:bg-dark-card rounded-3xl p-6 lg:p-8 border border-app-border dark:border-dark-border shadow-sm flex flex-col">
-            <div className="mb-6">
-               <div className="flex items-center justify-between">
-                 <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight">
-                  Suas Despesas
-                 </h2>
-                 <button className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-app-elevated dark:hover:bg-dark-elevated text-app-muted transition-colors">
-                   <ChevronRight size={18} />
-                 </button>
-               </div>
-              <p className="text-sm text-app-muted dark:text-dark-muted mt-1">
-                Para onde seu dinheiro está indo
-              </p>
-            </div>
-            {categoryChartData.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center bg-app-elevated/50 dark:bg-dark-elevated/50 rounded-2xl border border-dashed border-app-border dark:border-dark-border">
-                <PieChart className="text-app-muted dark:text-dark-muted mb-2" />
-                <p className="text-sm font-semibold text-app-muted dark:text-dark-muted">
-                  Nenhuma despesa
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-6 flex-1">
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={categoryChartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={95}
-                      paddingAngle={4}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {categoryChartData.map((entry) => (
-                        <Cell key={entry.category} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <PieTooltip
-                      formatter={(value: number | undefined, name: string | undefined) => [
-                        isPrivacyMode ? "••••" : formatCurrency(value ?? 0),
-                        name ?? "",
-                      ]}
-                      contentStyle={{
-                        background: "var(--color-app-card)",
-                        border: "1px solid var(--color-app-border)",
-                        borderRadius: "16px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-                        padding: "10px 14px"
-                      }}
-                      itemStyle={{ color: "var(--color-app-text)", padding: 0 }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex flex-col gap-3">
-                  {categoryChartData.map((entry) => (
-                    <div key={entry.category} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-app-elevated dark:hover:bg-dark-elevated transition-colors cursor-default border border-transparent hover:border-app-border dark:hover:border-dark-border">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-3.5 h-3.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: entry.color, boxShadow: `0 0 10px ${entry.color}80` }}
-                        />
-                        <span className="text-sm font-semibold text-app-text dark:text-dark-text">
-                          {entry.name}
-                        </span>
-                      </div>
-                      <span className="text-[15px] font-black text-app-text dark:text-dark-text tracking-tight">
-                        {isPrivacyMode ? "••••" : formatCurrency(entry.value)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Agenda Financeira - Real Data */}
-          <div className="xl:col-span-5 bg-gradient-to-br from-app-card to-app-hover dark:from-dark-card dark:to-dark-hover rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col relative overflow-hidden group">
+          {/* Agenda Financeira */}
+          <div className="xl:col-span-4 bg-gradient-to-br from-app-card to-app-hover dark:from-dark-card dark:to-dark-hover rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col relative overflow-hidden group self-start">
             <div className="flex items-center justify-between mb-6 relative z-10">
               <div className="pr-12">
                 <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight flex items-center gap-2">
@@ -480,8 +451,158 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Despesas */}
+          <div className="xl:col-span-6 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col self-start">
+              <div className="mb-4">
+                <h2 className="text-lg font-black text-app-text dark:text-dark-text tracking-tight">
+                  Suas Despesas
+                </h2>
+                <p className="text-xs text-app-muted dark:text-dark-muted mt-1">
+                  Para onde seu dinheiro está indo
+                </p>
+              </div>
+              {categoryChartData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 bg-app-elevated/50 dark:bg-dark-elevated/50 rounded-2xl border border-dashed border-app-border dark:border-dark-border">
+                  <PieChart className="text-app-muted dark:text-dark-muted mb-2" />
+                  <p className="text-sm font-semibold text-app-muted dark:text-dark-muted">
+                    Nenhuma despesa
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie
+                        data={categoryChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={4}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {categoryChartData.map((entry) => (
+                          <Cell key={entry.category} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <PieTooltip
+                        formatter={(value: number | undefined, name: string | undefined) => [
+                          isPrivacyMode ? "••••" : formatCurrency(value ?? 0),
+                          name ?? "",
+                        ]}
+                        contentStyle={{
+                          background: "var(--color-app-card)",
+                          border: "1px solid var(--color-app-border)",
+                          borderRadius: "16px",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                          padding: "10px 14px"
+                        }}
+                        itemStyle={{ color: "var(--color-app-text)", padding: 0 }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto">
+                    {categoryChartData.map((entry) => (
+                      <div key={entry.category} className="flex items-center justify-between px-3 py-1.5 rounded-xl hover:bg-app-elevated dark:hover:bg-dark-elevated transition-colors cursor-default">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-sm font-semibold text-app-text dark:text-dark-text">
+                            {entry.name}
+                          </span>
+                        </div>
+                        <span className="text-sm font-black text-app-text dark:text-dark-text tracking-tight">
+                          {isPrivacyMode ? "••••" : formatCurrency(entry.value)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
+
+          {/* Receitas */}
+          <div className="xl:col-span-6 bg-app-card dark:bg-dark-card rounded-3xl p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col self-start">
+              <div className="mb-4">
+                <h2 className="text-lg font-black text-app-text dark:text-dark-text tracking-tight">
+                  Suas Receitas
+                </h2>
+                <p className="text-xs text-app-muted dark:text-dark-muted mt-1">
+                  De onde vem seu dinheiro
+                </p>
+              </div>
+              {incomeCategoryChartData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 bg-app-elevated/50 dark:bg-dark-elevated/50 rounded-2xl border border-dashed border-app-border dark:border-dark-border">
+                  <PieChart className="text-app-muted dark:text-dark-muted mb-2" />
+                  <p className="text-sm font-semibold text-app-muted dark:text-dark-muted">
+                    Nenhuma receita
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie
+                        data={incomeCategoryChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={4}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {incomeCategoryChartData.map((entry) => (
+                          <Cell key={entry.category} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <PieTooltip
+                        formatter={(value: number | undefined, name: string | undefined) => [
+                          isPrivacyMode ? "••••" : formatCurrency(value ?? 0),
+                          name ?? "",
+                        ]}
+                        contentStyle={{
+                          background: "var(--color-app-card)",
+                          border: "1px solid var(--color-app-border)",
+                          borderRadius: "16px",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                          padding: "10px 14px"
+                        }}
+                        itemStyle={{ color: "var(--color-app-text)", padding: 0 }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto">
+                    {incomeCategoryChartData.map((entry) => (
+                      <div key={entry.category} className="flex items-center justify-between px-3 py-1.5 rounded-xl hover:bg-app-elevated dark:hover:bg-dark-elevated transition-colors cursor-default">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-sm font-semibold text-app-text dark:text-dark-text">
+                            {entry.name}
+                          </span>
+                        </div>
+                        <span className="text-sm font-black text-app-text dark:text-dark-text tracking-tight">
+                          {isPrivacyMode ? "••••" : formatCurrency(entry.value)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
+
           {/* Últimas Transações */}
-          <div className="xl:col-span-7 bg-app-card dark:bg-dark-card rounded-3xl p-6 lg:p-8 border border-app-border dark:border-dark-border shadow-sm flex flex-col">
+          <div className="xl:col-span-12 bg-app-card dark:bg-dark-card rounded-3xl p-6 lg:p-8 border border-app-border dark:border-dark-border shadow-sm flex flex-col">
             <div className="flex items-center justify-between mb-6">
                <div>
                   <h2 className="text-xl font-black text-app-text dark:text-dark-text tracking-tight">
@@ -518,7 +639,10 @@ export default function Dashboard() {
                     Nenhuma transação lançada
                   </p>
                   <p className="text-sm font-semibold text-app-muted dark:text-dark-muted">
-                    No mês de {new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date(selectedYear, selectedMonth - 1))}
+                    {dateRange
+                      ? "No período selecionado"
+                      : `No mês de ${new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date(selectedYear, selectedMonth - 1))}`
+                    }
                   </p>
                   <button onClick={() => navigate("/transactions")} className="mt-4 text-sm font-bold text-app-accent dark:text-dark-accent bg-app-accent/5 px-5 py-2.5 rounded-xl hover:bg-app-accent/10 transition-colors">
                      Adicionar Agora

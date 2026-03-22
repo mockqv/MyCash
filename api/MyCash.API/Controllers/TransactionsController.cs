@@ -26,12 +26,19 @@ public class TransactionsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] int? month = null,
-        [FromQuery] int? year = null)
+        [FromQuery] int? year = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
     {
         var userId = User.GetUserId();
         var query = _context.Transactions.Where(t => t.UserId == userId).AsQueryable();
 
-        if (month.HasValue && year.HasValue)
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            var end = endDate.Value.Date.AddDays(1);
+            query = query.Where(t => t.Date >= startDate.Value.Date && t.Date < end);
+        }
+        else if (month.HasValue && year.HasValue)
         {
             query = query.Where(t => t.Date.Month == month.Value && t.Date.Year == year.Value);
         }
@@ -67,12 +74,19 @@ public class TransactionsController : ControllerBase
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary(
         [FromQuery] int? month = null,
-        [FromQuery] int? year = null)
+        [FromQuery] int? year = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
     {
         var userId = User.GetUserId();
         var query = _context.Transactions.Where(t => t.UserId == userId).AsQueryable();
 
-        if (month.HasValue && year.HasValue)
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            var end = endDate.Value.Date.AddDays(1);
+            query = query.Where(t => t.Date >= startDate.Value.Date && t.Date < end);
+        }
+        else if (month.HasValue && year.HasValue)
         {
             query = query.Where(t => t.Date.Month == month.Value && t.Date.Year == year.Value);
         }
