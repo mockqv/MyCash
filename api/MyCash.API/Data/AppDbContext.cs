@@ -13,6 +13,8 @@ public class AppDbContext : DbContext
     public DbSet<ScheduledTransaction> ScheduledTransactions { get; set; }
     public DbSet<ScheduledOccurrence> ScheduledOccurrences { get; set; }
     public DbSet<CustomCategory> CustomCategories { get; set; }
+    public DbSet<Goal> Goals { get; set; }
+    public DbSet<Investment> Investments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

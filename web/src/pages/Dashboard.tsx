@@ -9,6 +9,8 @@ import {
   Clock,
   Sparkles,
   ChevronRight,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 import {
   AreaChart,
@@ -27,12 +29,15 @@ import { useAuth } from "../contexts/AuthContext";
 import {
   useTransactions,
   useTransactionSummary,
+  useTotalBalance,
 } from "../hooks/useTransactions";
 import { useScheduledTransactions } from "../hooks/useScheduledTransactions";
 import { formatCurrency, formatDate } from "../utils/formatters";
 import { TransactionType } from "../types/transaction";
 import { categoryLabels, categoryColors } from "../utils/transaction";
 import { useCustomCategories } from "../hooks/useCustomCategories";
+import { useGoals } from "../hooks/useGoals";
+import { useInvestments } from "../hooks/useInvestments";
 import MonthYearPicker from "../components/MonthYearPicker";
 import PageLayout from "../components/PageLayout";
 import { useTheme } from "../contexts/ThemeContext";
@@ -98,6 +103,9 @@ export default function Dashboard() {
   );
   const { data: scheduledData, isLoading: isLoadingScheduled } = useScheduledTransactions();
   const { data: customCategories = [] } = useCustomCategories();
+  const { data: totalBalanceSummary } = useTotalBalance();
+  const { data: goals = [] } = useGoals();
+  const { data: investments = [] } = useInvestments();
 
   const transactions = transactionsData?.items ?? [];
   const balance = (summary?.totalIncome ?? 0) - (summary?.totalExpense ?? 0);
@@ -340,6 +348,65 @@ export default function Dashboard() {
               </p>
             )}
           </div>
+        </div>
+
+        {/* Saldo Total + Metas + Investimentos */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Saldo Total */}
+          <div className="bg-app-card dark:bg-dark-card rounded-[2rem] p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col justify-between min-h-[130px] hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between w-full mb-2">
+              <span className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">Saldo Total</span>
+              <div className="h-9 w-9 rounded-2xl bg-app-elevated dark:bg-dark-elevated flex items-center justify-center">
+                <Wallet className="h-4 w-4 text-app-text dark:text-dark-text" />
+              </div>
+            </div>
+            <p className="text-[24px] font-black text-app-text dark:text-dark-text tracking-tight leading-none">
+              {maskValue(formatCurrency(totalBalanceSummary?.totalBalance ?? 0))}
+            </p>
+            <p className="text-xs font-semibold text-app-muted dark:text-dark-muted mt-2">
+              Disponível: {maskValue(formatCurrency(totalBalanceSummary?.availableBalance ?? 0))}
+            </p>
+          </div>
+
+          {/* Metas */}
+          <button
+            onClick={() => navigate("/goals")}
+            className="bg-app-card dark:bg-dark-card rounded-[2rem] p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col justify-between min-h-[130px] hover:shadow-md hover:border-app-accent/30 transition-all group cursor-pointer text-left"
+          >
+            <div className="flex items-center justify-between w-full mb-2">
+              <span className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">Metas</span>
+              <div className="h-9 w-9 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Target className="h-4 w-4 text-blue-500" />
+              </div>
+            </div>
+            <p className="text-[24px] font-black text-app-text dark:text-dark-text tracking-tight leading-none">
+              {maskValue(formatCurrency(totalBalanceSummary?.allocatedToGoals ?? 0))}
+            </p>
+            <p className="text-xs font-semibold text-app-muted dark:text-dark-muted mt-2 flex items-center justify-between">
+              <span>{goals.length} {goals.length === 1 ? "meta" : "metas"} ativas</span>
+              <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </p>
+          </button>
+
+          {/* Investimentos */}
+          <button
+            onClick={() => navigate("/investments")}
+            className="bg-app-card dark:bg-dark-card rounded-[2rem] p-6 border border-app-border dark:border-dark-border shadow-sm flex flex-col justify-between min-h-[130px] hover:shadow-md hover:border-app-accent/30 transition-all group cursor-pointer text-left"
+          >
+            <div className="flex items-center justify-between w-full mb-2">
+              <span className="text-xs font-semibold text-app-muted dark:text-dark-muted uppercase tracking-widest">Investimentos</span>
+              <div className="h-9 w-9 rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <TrendingUp className="h-4 w-4 text-purple-500" />
+              </div>
+            </div>
+            <p className="text-[24px] font-black text-app-text dark:text-dark-text tracking-tight leading-none">
+              {maskValue(formatCurrency(totalBalanceSummary?.allocatedToInvestments ?? 0))}
+            </p>
+            <p className="text-xs font-semibold text-app-muted dark:text-dark-muted mt-2 flex items-center justify-between">
+              <span>{investments.length} {investments.length === 1 ? "investimento" : "investimentos"}</span>
+              <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </p>
+          </button>
         </div>
 
         {/* Charts & Lists - Grids */}
