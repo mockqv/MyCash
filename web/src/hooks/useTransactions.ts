@@ -39,4 +39,21 @@ export function useTransactionSummary(month?: number, year?: number, startDate?:
       return data
     },
   })
+}
+
+export interface TotalBalanceSummary {
+  totalBalance: number
+  allocatedToGoals: number
+  allocatedToInvestments: number
+  availableBalance: number
+}
+
+export function useTotalBalance() {
+  return useQuery<TotalBalanceSummary>({
+    queryKey: ["totalBalance"],
+    queryFn: async () => {
+      const { data } = await api.get("/api/Transactions/total-balance")
+      return data
+    },
+  })
 }

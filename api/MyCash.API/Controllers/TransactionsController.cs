@@ -71,6 +71,38 @@ public class TransactionsController : ControllerBase
         });
     }
 
+    [HttpGet("total-balance")]
+    public async Task<IActionResult> GetTotalBalance()
+    {
+        var userId = User.GetUserId();
+
+        var totalIncome = await _context.Transactions
+            .Where(t => t.UserId == userId && t.Type == TransactionType.Income)
+            .SumAsync(t => t.Amount);
+
+        var totalExpense = await _context.Transactions
+            .Where(t => t.UserId == userId && t.Type == TransactionType.Expense)
+            .SumAsync(t => t.Amount);
+
+        var allocatedToGoals = await _context.Goals
+            .Where(g => g.UserId == userId)
+            .SumAsync(g => g.AllocatedAmount);
+
+        var allocatedToInvestments = await _context.Investments
+            .Where(i => i.UserId == userId)
+            .SumAsync(i => i.Amount);
+
+        var totalBalance = totalIncome - totalExpense;
+
+        return Ok(new
+        {
+            TotalBalance = totalBalance,
+            AllocatedToGoals = allocatedToGoals,
+            AllocatedToInvestments = allocatedToInvestments,
+            AvailableBalance = totalBalance - allocatedToGoals - allocatedToInvestments
+        });
+    }
+
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary(
         [FromQuery] int? month = null,

@@ -6,6 +6,8 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
+import Goals from "./pages/Goals";
+import Investments from "./pages/Investments";
 import Settings from "./pages/Settings";
 import Customize from "./pages/Customize";
 import Login from "./pages/Login";
@@ -61,6 +63,22 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <Transactions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/goals"
+                element={
+                  <ProtectedRoute>
+                    <Goals />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/investments"
+                element={
+                  <ProtectedRoute>
+                    <Investments />
                   </ProtectedRoute>
                 }
               />
